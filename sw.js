@@ -4,7 +4,7 @@
 
 // Bei jeder neuen Etappe wird diese Versionsnummer erhöht. Daran erkennt das
 // Handy, dass es neue Dateien gibt.
-const VERSION = 'planner-1.0.0';
+const VERSION = 'planner-2.0.0';
 
 // Alle Dateien der App. Die Liste wird beim Zusammenstellen automatisch gefüllt.
 /* DATEIEN-ANFANG */
@@ -12,29 +12,33 @@ const DATEIEN = [
   './',
   'bibliothek/preact-htm.js',
   'css/app.css',
-  'fonts/jost.woff2',
   'fonts/outfit.woff2',
-  'fonts/raleway.woff2',
   'icons/icon-180.png',
   'icons/icon-192.png',
   'icons/icon-512.png',
-  'img/holz.jpg',
   'index.html',
   'js/aktualisierung.js',
+  'js/ansichten/aufgaben.js',
   'js/ansichten/einstellungen.js',
   'js/ansichten/heute.js',
   'js/ansichten/kategorien.js',
+  'js/ansichten/papierkorb.js',
   'js/ansichten/platzhalter.js',
   'js/ansichten/uebersicht.js',
   'js/app.js',
+  'js/aufgaben.js',
   'js/backup.js',
+  'js/bausteine/aufgabe-blatt.js',
+  'js/bausteine/aufgabe-zeile.js',
   'js/bausteine/backup-dialoge.js',
   'js/bausteine/fenster.js',
+  'js/bausteine/icon-wahl.js',
   'js/bausteine/icon.js',
   'js/db.js',
   'js/haken.js',
   'js/hilfen.js',
   'js/icon-daten.js',
+  'js/regeln.js',
   'js/store.js',
   'js/typen.js',
   'js/version.js',

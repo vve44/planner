@@ -2,16 +2,20 @@
 
 import { html, render, useState, useEffect, useRef } from '../bibliothek/preact-htm.js';
 import * as store from './store.js';
+import * as aufgaben from './aufgaben.js';
 import { useDaten, useRoute, geheZu } from './haken.js';
 import { datumLang } from './hilfen.js';
 import { Icon } from './bausteine/icon.js';
 import { Dienste, melde } from './bausteine/fenster.js';
 import { BackupDialoge } from './bausteine/backup-dialoge.js';
+import { AufgabenFenster } from './bausteine/aufgabe-blatt.js';
 import { starteOfflineBetrieb, abonniereUpdate, updateBereit, uebernimmUpdate } from './aktualisierung.js';
 import { Heute } from './ansichten/heute.js';
-import { Kalender, Aufgaben } from './ansichten/platzhalter.js';
+import { Kalender } from './ansichten/platzhalter.js';
+import { Aufgaben, Liste, Merkliste } from './ansichten/aufgaben.js';
 import { Uebersicht } from './ansichten/uebersicht.js';
 import { Kategorien } from './ansichten/kategorien.js';
+import { Papierkorb } from './ansichten/papierkorb.js';
 import { Einstellungen } from './ansichten/einstellungen.js';
 
 // Alle Seiten der App. "tab" sagt, welcher Punkt der unteren Leiste leuchtet,
@@ -21,7 +25,10 @@ const SEITEN = {
   kalender: { titel: 'Kalender', ansicht: Kalender, tab: 'kalender' },
   aufgaben: { titel: 'Aufgaben', ansicht: Aufgaben, tab: 'aufgaben' },
   uebersicht: { titel: 'Übersicht', ansicht: Uebersicht, tab: 'uebersicht' },
+  liste: { titel: 'Liste', ansicht: Liste, tab: 'aufgaben', zurueck: 'aufgaben' },
+  merkliste: { titel: 'Merkliste', ansicht: Merkliste, tab: 'uebersicht', zurueck: 'uebersicht' },
   kategorien: { titel: 'Kategorien', ansicht: Kategorien, tab: 'uebersicht', zurueck: 'uebersicht' },
+  papierkorb: { titel: 'Papierkorb', ansicht: Papierkorb, tab: 'uebersicht', zurueck: 'uebersicht' },
   einstellungen: { titel: 'Einstellungen', ansicht: Einstellungen, tab: 'uebersicht', zurueck: 'uebersicht' },
 };
 
@@ -32,23 +39,36 @@ const TABS = [
   { route: 'uebersicht', name: 'Übersicht', icon: 'layout-grid' },
 ];
 
+// Von welchem Hauptbereich aus eine Unterseite geöffnet wurde (für die Merkliste,
+// die sowohl über "Aufgaben" als auch über die "Übersicht" erreichbar ist).
+let letzterHauptbereich = 'heute';
+
 function App() {
   useDaten();
   const route = useRoute();
-  const seite = SEITEN[route] || SEITEN.heute;
+  const seite = SEITEN[route.name] || SEITEN.heute;
   const inhalt = useRef(null);
   const [, setUpdateZaehler] = useState(0);
 
-  // Gewählte Schrift auf die ganze App anwenden.
-  const schrift = store.einstellung('schrift', 'jost');
-  useEffect(() => {
-    document.documentElement.dataset.schrift = schrift;
-  }, [schrift]);
+  if (TABS.some((t) => t.route === route.name)) letzterHauptbereich = route.name;
+
+  let tab = seite.tab;
+  let zurueck = seite.zurueck;
+  if (route.name === 'merkliste' && letzterHauptbereich === 'aufgaben') {
+    tab = 'aufgaben';
+    zurueck = 'aufgaben';
+  }
+
+  let titel = seite.titel;
+  if (route.name === 'liste') {
+    const projekt = route.teil ? store.hole(route.teil) : null;
+    if (projekt && projekt.typ === 'projekt') titel = projekt.name;
+  }
 
   // Beim Seitenwechsel nach oben springen.
   useEffect(() => {
     if (inhalt.current) inhalt.current.scrollTop = 0;
-  }, [route]);
+  }, [route.name, route.teil]);
 
   useEffect(() => abonniereUpdate(() => setUpdateZaehler((n) => n + 1)), []);
 
@@ -57,14 +77,14 @@ function App() {
   return html`
     <header class="kopf">
       <div class="kopf-zeile">
-        ${seite.zurueck && html`
-          <button class="kopf-zurueck" type="button" aria-label="Zurück" onClick=${() => geheZu(seite.zurueck)}>
+        ${zurueck && html`
+          <button class="kopf-zurueck" type="button" aria-label="Zurück" onClick=${() => geheZu(zurueck)}>
             <${Icon} name="chevron-left" groesse=${26} />
           </button>
         `}
         <div class="kopf-text">
-          <h1>${seite.titel}</h1>
-          ${route === 'heute' && html`<p>${datumLang()}</p>`}
+          <h1>${titel}</h1>
+          ${route.name === 'heute' && html`<p>${datumLang()}</p>`}
         </div>
       </div>
     </header>
@@ -76,19 +96,20 @@ function App() {
           <button type="button" onClick=${uebernimmUpdate}>Jetzt aktualisieren</button>
         </div>
       `}
-      <${Ansicht} />
+      <${Ansicht} teil=${route.teil} />
     </main>
 
     <nav class="leiste-unten" aria-label="Bereiche">
       ${TABS.map((t) => html`
-        <button type="button" class=${`tab ${seite.tab === t.route ? 'aktiv' : ''}`}
-          aria-current=${seite.tab === t.route ? 'page' : null} onClick=${() => geheZu(t.route)}>
-          <${Icon} name=${t.icon} groesse=${24} />
+        <button type="button" class=${`tab ${tab === t.route ? 'aktiv' : ''}`}
+          aria-current=${tab === t.route ? 'page' : null} onClick=${() => geheZu(t.route)}>
+          <${Icon} name=${t.icon} groesse=${23} />
           <span>${t.name}</span>
         </button>
       `)}
     </nav>
 
+    <${AufgabenFenster} />
     <${BackupDialoge} />
     <${Dienste} />
   `;
@@ -113,7 +134,8 @@ async function starte() {
     melde('Die letzte Änderung konnte nicht gespeichert werden.', { dauer: 8000 });
   });
 
-  document.documentElement.dataset.schrift = store.einstellung('schrift', 'jost');
+  aufgaben.sicherstelleMerkliste();
+
   wurzel.innerHTML = '';
   render(html`<${App} />`, wurzel);
 
@@ -123,6 +145,18 @@ async function starte() {
   }
 
   starteOfflineBetrieb();
+
+  // Wechselt der Tag, während die App offen ist, die Ansichten neu zeichnen.
+  let tag = new Date().toDateString();
+  const pruefeTag = () => {
+    const jetzt = new Date().toDateString();
+    if (jetzt !== tag) {
+      tag = jetzt;
+      store.zeichneNeu();
+    }
+  };
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pruefeTag(); });
+  setInterval(pruefeTag, 60000);
 }
 
 starte();

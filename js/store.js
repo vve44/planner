@@ -141,6 +141,21 @@ export function wiederherstellen(id) {
   return aendern(id, { geloeschtAm: null });
 }
 
+// Entfernt Einträge endgültig (ohne Papierkorb).
+export function entfernen(ids) {
+  const liste = Array.isArray(ids) ? ids : [ids];
+  liste.forEach((id) => zustand.datensaetze.delete(id));
+  sichere(db.entferneDatensaetze(liste));
+  benachrichtige();
+}
+
+// Alles, was im Papierkorb liegt, neueste Löschung zuerst.
+export function papierkorb() {
+  return alleDatensaetze()
+    .filter((d) => d.geloeschtAm)
+    .sort((a, b) => (a.geloeschtAm < b.geloeschtAm ? 1 : -1));
+}
+
 // ---------- Einstellungen ----------
 
 export function einstellung(name, standard = null) {
@@ -160,6 +175,11 @@ export async function setzeEinstellung(name, wert) {
 export async function ersetzeBestand(datensaetze) {
   await db.ersetzeAlleDatensaetze(datensaetze);
   zustand.datensaetze = new Map(datensaetze.map((d) => [d.id, d]));
+  benachrichtige();
+}
+
+// Zeichnet alle Ansichten neu, ohne dass sich Daten geändert haben (zum Beispiel beim Tageswechsel).
+export function zeichneNeu() {
   benachrichtige();
 }
 

@@ -1,12 +1,13 @@
 // Kategorien: anlegen, ändern, sortieren, löschen.
-// Eine Kategorie gilt später einheitlich für Aufgaben, Termine, Habits, Notizen und Ziele.
+// Eine Kategorie gilt einheitlich für Aufgaben und Listen, später auch für Termine, Habits, Notizen und Ziele.
 
 import { html, useState } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
+import { IconWahl } from '../bausteine/icon-wahl.js';
 import { Blatt, melde } from '../bausteine/fenster.js';
 import { useDaten } from '../haken.js';
 import * as store from '../store.js';
-import { KATEGORIE_FARBEN, AUSWAHL_ICONS } from '../typen.js';
+import { KATEGORIE_FARBEN } from '../typen.js';
 import { farbeDarauf } from '../hilfen.js';
 
 function sortiert() {
@@ -32,7 +33,7 @@ export function Kategorien() {
     return html`
       <div class="seite">
         <section class="leer">
-          <span class="leer-icon"><${Icon} name="tags" groesse=${30} strich=${1.4} /></span>
+          <span class="leer-icon"><${Icon} name="tags" groesse=${28} strich=${1.4} /></span>
           <h2>Noch keine Kategorien</h2>
           <p class="text-leise">
             Kategorien wie „Gesundheit“ oder „Universität“ geben Aufgaben, Terminen, Habits,
@@ -58,18 +59,18 @@ export function Kategorien() {
         `}
       </div>
 
-      <ul class="eintrag-liste">
+      <ul class="gruppe">
         ${liste.map((k, index) => html`
-          <li class="eintrag" key=${k.id}>
-            <button class="eintrag-haupt" type="button" disabled=${sortieren} onClick=${() => setOffen({ id: k.id })}>
+          <li class="zeile" key=${k.id}>
+            <button class="zeile-haupt" type="button" disabled=${sortieren} onClick=${() => setOffen({ id: k.id })}>
               <span class="farb-marke" style=${`background:${k.farbe};color:${farbeDarauf(k.farbe)}`}>
-                <${Icon} name=${k.icon} groesse=${20} />
+                <${Icon} name=${k.icon} groesse=${19} />
               </span>
-              <span class="eintrag-name">${k.name}</span>
-              ${!sortieren && html`<${Icon} name="chevron-right" groesse=${18} klasse="leise" />`}
+              <span class="zeile-text"><strong>${k.name}</strong></span>
+              ${!sortieren && html`<${Icon} name="chevron-right" groesse=${18} klasse="zeile-pfeil" />`}
             </button>
             ${sortieren && html`
-              <span class="sortier-knoepfe">
+              <span class="zeile-knoepfe">
                 <button class="knopf-rund" type="button" aria-label=${`${k.name} nach oben`}
                   disabled=${index === 0} onClick=${() => verschiebe(index, -1)}>
                   <${Icon} name="arrow-up" groesse=${18} />
@@ -103,7 +104,7 @@ function KategorieBlatt({ offen, anzahl, onSchliessen }) {
   const [fehler, setFehler] = useState('');
 
   const speichern = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     const sauber = name.trim();
     if (!sauber) {
       setFehler('Gib der Kategorie einen Namen.');
@@ -125,8 +126,12 @@ function KategorieBlatt({ offen, anzahl, onSchliessen }) {
     melde(`„${vorhanden.name}“ gelöscht`, { aktion: 'Rückgängig', beiAktion: () => store.wiederherstellen(id) });
   };
 
+  const fuss = html`
+    <button class="knopf breit" type="button" onClick=${speichern}>${vorhanden ? 'Änderungen speichern' : 'Kategorie anlegen'}</button>
+  `;
+
   return html`
-    <${Blatt} titel=${vorhanden ? 'Kategorie bearbeiten' : 'Neue Kategorie'} onSchliessen=${onSchliessen}>
+    <${Blatt} titel=${vorhanden ? 'Kategorie bearbeiten' : 'Neue Kategorie'} onSchliessen=${onSchliessen} fuss=${fuss}>
       <form class="formular" onSubmit=${speichern}>
         <div class="vorschau-kategorie">
           <span class="farb-marke gross" style=${`background:${farbe};color:${farbeDarauf(farbe)}`}><${Icon} name=${icon} groesse=${26} /></span>
@@ -156,20 +161,12 @@ function KategorieBlatt({ offen, anzahl, onSchliessen }) {
 
         <fieldset class="feld-gruppe">
           <legend>Icon</legend>
-          <div class="icon-wahl">
-            ${AUSWAHL_ICONS.map((i) => html`
-              <button type="button" class=${`icon-punkt ${icon === i ? 'aktiv' : ''}`}
-                aria-label=${i} aria-pressed=${icon === i} onClick=${() => setIcon(i)}>
-                <${Icon} name=${i} groesse=${22} />
-              </button>
-            `)}
-          </div>
+          <${IconWahl} wert=${icon} onWahl=${setIcon} />
         </fieldset>
 
-        <button class="knopf breit" type="submit">${vorhanden ? 'Änderungen speichern' : 'Kategorie anlegen'}</button>
         ${vorhanden && html`
           <button class="knopf breit leise gefahr-text" type="button" onClick=${loeschen}>
-            <${Icon} name="trash-2" /> Kategorie löschen
+            <${Icon} name="trash-2" groesse=${20} /> Kategorie löschen
           </button>
         `}
       </form>

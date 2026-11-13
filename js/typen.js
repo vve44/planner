@@ -1,12 +1,12 @@
-// Gemeinsame Listen: Namen der Datensatz-Typen, Farben und Icons zur Auswahl.
+// Gemeinsame Listen: Namen der Datensatz-Typen, Farben, Icons und Auswahlwerte.
 
-// Anzeigenamen der Typen (für die Backup-Vorschau). Die Typen kommen nach und
-// nach mit den Etappen dazu, die Namen stehen schon jetzt fest.
+// Anzeigenamen der Typen (für Backup-Vorschau und Papierkorb). Die Typen kommen
+// nach und nach mit den Etappen dazu, die Namen stehen schon jetzt fest.
 export const TYP_NAMEN = {
   kategorie: 'Kategorien',
   projekt: 'Projekte und Listen',
   aufgabe: 'Aufgaben',
-  serie: 'Wiederholungen und Routinen',
+  serie: 'Wiederholungen',
   tagesroutine: 'Tagesroutinen',
   tagesroutineHaken: 'Abgehakte Tagesroutinen',
   pool: 'Aufgabenpools',
@@ -20,6 +20,13 @@ export const TYP_NAMEN = {
   periode: 'Zyklus-Einträge',
   ziel: 'Ziele',
   punkteEreignis: 'Punkte',
+};
+
+// Einzahl, für einzelne Einträge im Papierkorb.
+export const TYP_EINZAHL = {
+  kategorie: 'Kategorie',
+  projekt: 'Projekt oder Liste',
+  aufgabe: 'Aufgabe',
 };
 
 // Farben für Kategorien: die Töne der Palette plus gedeckte Ergänzungen,
@@ -37,11 +44,33 @@ export const KATEGORIE_FARBEN = [
   { wert: '#b3a7cc', name: 'Lavendel' },
   { wert: '#8fa8c4', name: 'Taubenblau' },
   { wert: '#9aa57a', name: 'Oliv' },
-  { wert: '#6b4a32', name: 'Holz' },
+  { wert: '#8a6d55', name: 'Nuss' },
   { wert: '#7c8686', name: 'Graphit' },
 ];
 
-// Icons zur Auswahl für Kategorien (später auch für Aufgaben und Habits).
+// Prioritäten einer Aufgabe.
+export const PRIORITAETEN = [
+  { wert: 0, name: 'Keine' },
+  { wert: 1, name: 'Niedrig' },
+  { wert: 2, name: 'Mittel' },
+  { wert: 3, name: 'Hoch' },
+];
+
+// Wochentage, 1 = Montag … 7 = Sonntag.
+export const WOCHENTAGE = [
+  { nr: 1, kurz: 'Mo', lang: 'Montag' },
+  { nr: 2, kurz: 'Di', lang: 'Dienstag' },
+  { nr: 3, kurz: 'Mi', lang: 'Mittwoch' },
+  { nr: 4, kurz: 'Do', lang: 'Donnerstag' },
+  { nr: 5, kurz: 'Fr', lang: 'Freitag' },
+  { nr: 6, kurz: 'Sa', lang: 'Samstag' },
+  { nr: 7, kurz: 'So', lang: 'Sonntag' },
+];
+
+// Vorschläge für die Dauer einer Aufgabe in Minuten.
+export const DAUER_VORSCHLAEGE = [15, 30, 45, 60, 90, 120];
+
+// Icons zur Auswahl für Kategorien, Listen und Aufgaben (später auch Habits).
 export const AUSWAHL_ICONS = [
   'heart-pulse', 'graduation-cap', 'briefcase', 'cake', 'house', 'dumbbell', 'book-open', 'shopping-cart',
   'utensils', 'plane', 'car', 'music', 'palette', 'star', 'gift', 'users',
@@ -54,4 +83,5 @@ export const AUSWAHL_ICONS = [
   'train-front', 'bus', 'tent', 'umbrella', 'snowflake', 'apple', 'carrot', 'cooking-pot',
   'dog', 'cat', 'flower', 'flower-2', 'sprout', 'leaf', 'droplet', 'party-popper',
   'pen-line', 'calendar-heart', 'hand-heart', 'spray-can', 'target', 'bookmark', 'tag', 'flame',
+  'folder', 'list', 'clipboard-list', 'inbox',
 ];

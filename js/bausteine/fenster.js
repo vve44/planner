@@ -4,8 +4,9 @@ import { html, useState, useEffect } from '../../bibliothek/preact-htm.js';
 import { Icon } from './icon.js';
 
 // ---------- Blatt: schiebt sich von unten ins Bild ----------
+// "fuss" bleibt unten stehen (zum Beispiel der Speichern-Knopf), der Inhalt darüber scrollt.
 
-export function Blatt({ titel, onSchliessen, children }) {
+export function Blatt({ titel, onSchliessen, fuss, children }) {
   useEffect(() => {
     const beiTaste = (e) => { if (e.key === 'Escape') onSchliessen(); };
     document.addEventListener('keydown', beiTaste);
@@ -15,6 +16,7 @@ export function Blatt({ titel, onSchliessen, children }) {
   return html`
     <div class="blatt-hintergrund" onClick=${(e) => { if (e.target === e.currentTarget) onSchliessen(); }}>
       <section class="blatt" role="dialog" aria-modal="true" aria-label=${titel}>
+        <div class="blatt-griff" aria-hidden="true"></div>
         <header class="blatt-kopf">
           <h2>${titel}</h2>
           <button class="knopf-rund" type="button" aria-label="Schließen" onClick=${onSchliessen}>
@@ -22,6 +24,7 @@ export function Blatt({ titel, onSchliessen, children }) {
           </button>
         </header>
         <div class="blatt-inhalt">${children}</div>
+        ${fuss && html`<footer class="blatt-fuss">${fuss}</footer>`}
       </section>
     </div>
   `;
@@ -33,12 +36,20 @@ let setzeFrage = null;
 let setzeMeldung = null;
 let meldungUhr = null;
 
-// Stellt eine Ja/Nein-Frage. Antwort: true oder false.
-export function frage({ titel, text, ja = 'Ja', nein = 'Abbrechen', gefahr = false }) {
+// Lässt zwischen mehreren Möglichkeiten wählen. Antwort: der "wert" der gewählten
+// Möglichkeit oder null bei "Abbrechen".
+//   optionen: [{ wert, name, art }]   art: 'gefahr' oder 'leise' (optional)
+export function waehle({ titel, text, optionen, abbrechen = 'Abbrechen' }) {
   return new Promise((antwort) => {
-    if (!setzeFrage) { antwort(false); return; }
-    setzeFrage({ titel, text, ja, nein, gefahr, antwort });
+    if (!setzeFrage) { antwort(null); return; }
+    setzeFrage({ titel, text, optionen, abbrechen, antwort });
   });
+}
+
+// Stellt eine Ja/Nein-Frage. Antwort: true oder false.
+export async function frage({ titel, text, ja = 'Ja', nein = 'Abbrechen', gefahr = false }) {
+  const wahl = await waehle({ titel, text, optionen: [{ wert: true, name: ja, art: gefahr ? 'gefahr' : '' }], abbrechen: nein });
+  return wahl === true;
 }
 
 // Zeigt kurz eine Meldung am unteren Rand, optional mit einer Aktion (z. B. "Rückgängig").
@@ -72,8 +83,10 @@ export function Dienste() {
           <h2>${offeneFrage.titel}</h2>
           ${offeneFrage.text && html`<p>${offeneFrage.text}</p>`}
           <div class="frage-knoepfe">
-            <button class="knopf leise" type="button" onClick=${() => antworte(false)}>${offeneFrage.nein}</button>
-            <button class=${`knopf ${offeneFrage.gefahr ? 'gefahr' : ''}`} type="button" onClick=${() => antworte(true)}>${offeneFrage.ja}</button>
+            ${offeneFrage.optionen.map((o) => html`
+              <button class=${`knopf breit ${o.art || ''}`} type="button" onClick=${() => antworte(o.wert)}>${o.name}</button>
+            `)}
+            <button class="knopf breit leise" type="button" onClick=${() => antworte(null)}>${offeneFrage.abbrechen}</button>
           </div>
         </section>
       </div>

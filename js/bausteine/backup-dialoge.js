@@ -4,6 +4,7 @@ import { html, useState, useEffect, useRef } from '../../bibliothek/preact-htm.j
 import { Blatt, melde } from './fenster.js';
 import { Icon } from './icon.js';
 import * as backup from '../backup.js';
+import { sicherstelleMerkliste } from '../aufgaben.js';
 import { TYP_NAMEN } from '../typen.js';
 import { datumMitZeit, groesseLesbar } from '../hilfen.js';
 
@@ -243,6 +244,7 @@ function WiederherstellenBlatt({ onSchliessen }) {
     setArbeitet(true);
     try {
       await backup.stelleWiederHer(inhalt);
+      sicherstelleMerkliste();
       melde('Backup wiederhergestellt');
       onSchliessen();
     } catch (problem) {

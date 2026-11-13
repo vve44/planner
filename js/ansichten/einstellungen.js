@@ -1,4 +1,4 @@
-// Einstellungen: Schrift, Backup, Speicher und Version.
+// Einstellungen: Backup, Speicher und Version.
 
 import { html, useState, useEffect } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
@@ -7,15 +7,9 @@ import { oeffneBackup } from '../bausteine/backup-dialoge.js';
 import { useDaten } from '../haken.js';
 import * as store from '../store.js';
 import { backupStatus, ERINNERUNG_TAGE } from '../backup.js';
-import { datumLang, datumMitZeit, vorTagen, istInstalliert } from '../hilfen.js';
+import { datumMitZeit, vorTagen, istInstalliert } from '../hilfen.js';
 import { APP_VERSION, ETAPPE, ETAPPE_NAME } from '../version.js';
 import { sucheUpdate, updateBereit, uebernimmUpdate, abonniereUpdate, offlineUnterstuetzt } from '../aktualisierung.js';
-
-export const SCHRIFTEN = [
-  { wert: 'jost', name: 'Jost', text: 'Geometrisch und klar' },
-  { wert: 'raleway', name: 'Raleway', text: 'Fein und elegant' },
-  { wert: 'outfit', name: 'Outfit', text: 'Modern und weich' },
-];
 
 export function Einstellungen() {
   useDaten();
@@ -30,7 +24,6 @@ export function Einstellungen() {
     return abonniereUpdate(() => setUpdateZaehler((n) => n + 1));
   }, []);
 
-  const schrift = store.einstellung('schrift', 'jost');
   const status = backupStatus();
   const anzahl = store.alleDatensaetze().filter((d) => !d.geloeschtAm).length;
 
@@ -47,22 +40,6 @@ export function Einstellungen() {
   return html`
     <div class="seite">
       <section class="abschnitt">
-        <h2>Schrift</h2>
-        <div class="schrift-wahl" role="radiogroup" aria-label="Schrift">
-          ${SCHRIFTEN.map((s) => html`
-            <button type="button" role="radio" aria-checked=${schrift === s.wert}
-              class=${`schrift-karte ${schrift === s.wert ? 'aktiv' : ''}`}
-              style=${`font-family:var(--schrift-${s.wert})`}
-              onClick=${() => store.setzeEinstellung('schrift', s.wert)}>
-              <span class="schrift-probe">${datumLang()}</span>
-              <span class="schrift-name">${s.name}: ${s.text}</span>
-              ${schrift === s.wert && html`<span class="schrift-haken"><${Icon} name="check" groesse=${18} strich=${2.4} /></span>`}
-            </button>
-          `)}
-        </div>
-      </section>
-
-      <section class="abschnitt">
         <h2>Backup</h2>
         <dl class="werte">
           <div>
@@ -71,7 +48,7 @@ export function Einstellungen() {
           </div>
           <div>
             <dt>Erinnerung</dt>
-            <dd>${status.eingerichtet ? `Alle ${ERINNERUNG_TAGE} Tage im Tagesbereich` : 'Startet, sobald das Backup eingerichtet ist'}</dd>
+            <dd>${status.eingerichtet ? `Alle ${ERINNERUNG_TAGE} Tage im Tagesbereich` : 'Nach dem Einrichten'}</dd>
           </div>
         </dl>
         <div class="knopf-stapel">

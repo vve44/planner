@@ -1,49 +1,54 @@
-// Tagesbereich. In Etappe 1 zeigt er die Hinweise zu Installation und Backup
-// und den geplanten Aufbau. Die Inhalte kommen mit den nächsten Etappen.
+// Tagesbereich: Hinweise zu Installation und Backup, Überfälliges und die Aufgaben für heute.
+// Tagesroutinen, Vorschläge, Habits und Zyklusphase kommen mit späteren Etappen dazu.
 
 import { html } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
+import { AufgabenGruppe } from '../bausteine/aufgabe-zeile.js';
+import { oeffneAufgabe } from '../bausteine/aufgabe-blatt.js';
 import { oeffneBackup } from '../bausteine/backup-dialoge.js';
 import { useDaten } from '../haken.js';
 import { backupStatus } from '../backup.js';
-import { istInstalliert, vorTagen } from '../hilfen.js';
+import * as aufgaben from '../aufgaben.js';
+import { heute, istInstalliert, vorTagen } from '../hilfen.js';
 
-const BLOECKE = [
-  { icon: 'sun', name: 'Tagesroutinen', text: 'Feste Punkte, die du täglich abhakst', etappe: 3 },
-  { icon: 'droplet', name: 'Zyklusphase', text: 'Phase, Zyklustag und kurze Infos', etappe: 7 },
-  { icon: 'flame', name: 'Habits für heute', text: 'Gewohnheiten mit Streak', etappe: 5 },
-  { icon: 'list-checks', name: 'Aufgaben für heute', text: 'Geplantes und Überfälliges', etappe: 2 },
-  { icon: 'sparkles', name: 'Vorschläge', text: 'Fälliges aus Putzplan und anderen Pools', etappe: 3 },
+const SPAETER = [
+  { icon: 'sun', name: 'Tagesroutinen', etappe: 3 },
+  { icon: 'sparkles', name: 'Vorschläge', etappe: 3 },
+  { icon: 'flame', name: 'Habits', etappe: 5 },
+  { icon: 'droplet', name: 'Zyklusphase', etappe: 7 },
 ];
 
 export function Heute() {
   useDaten();
   const status = backupStatus();
-  const installiert = istInstalliert();
+  const tag = heute();
+  const alle = aufgaben.alleAufgaben();
+  const ueberfaellig = aufgaben.sortiere(alle.filter((a) => aufgaben.istUeberfaellig(a, tag)));
+  const offen = aufgaben.sortiere(alle.filter((a) => !a.erledigtAm && a.plandatum === tag));
+  const geschafft = aufgaben.sortiereErledigte(alle.filter((a) => aufgaben.heuteErledigt(a)));
 
   return html`
     <div class="seite">
-      ${!installiert && html`<${InstallHinweis} />`}
+      ${!istInstalliert() && html`<${InstallHinweis} />`}
       <${BackupKarte} status=${status} />
 
+      <${AufgabenGruppe} titel="Überfällig" liste=${ueberfaellig} warnung=${true} zeigeDatum=${true} mitMorgen=${true} />
+      <${AufgabenGruppe} titel="Aufgaben für heute" liste=${[...offen, ...geschafft]} mitMorgen=${true}
+        leerText="Für heute ist nichts geplant. Mit dem Plus legst du eine Aufgabe an." />
+
       <section class="abschnitt">
-        <h2>Dein Tag</h2>
-        <p class="text-leise">
-          Das Fundament steht: Design, Kategorien und Backup. Diese Blöcke füllen sich mit den nächsten Etappen.
-        </p>
-        <ul class="block-liste">
-          ${BLOECKE.map((b) => html`
-            <li class="block-zeile">
-              <span class="block-icon"><${Icon} name=${b.icon} /></span>
-              <span class="block-text">
-                <strong>${b.name}</strong>
-                <span>${b.text}</span>
-              </span>
-              <span class="etikett">Etappe ${b.etappe}</span>
-            </li>
+        <h2>Kommt noch dazu</h2>
+        <ul class="spaeter-liste">
+          ${SPAETER.map((s) => html`
+            <li><${Icon} name=${s.icon} groesse=${16} /> ${s.name}, Etappe ${s.etappe}</li>
           `)}
         </ul>
       </section>
+
+      <button class="knopf-plus" type="button" aria-label="Aufgabe für heute anlegen"
+        onClick=${() => oeffneAufgabe({ vorgaben: { plandatum: tag } })}>
+        <${Icon} name="plus" groesse=${26} />
+      </button>
     </div>
   `;
 }
@@ -58,9 +63,7 @@ function InstallHinweis() {
           Tippe in Safari auf das Teilen-Symbol und wähle „Zum Home-Bildschirm“.
           Starte den Planner danach immer über das neue Icon.
         </p>
-        <p class="text-leise">
-          Trag deine Daten erst dort ein. Was du hier im Browser-Tab eingibst, landet nicht in der installierten App.
-        </p>
+        <p>Trag deine Daten erst dort ein. Was du hier im Browser-Tab eingibst, landet nicht in der installierten App.</p>
       </div>
     </section>
   `;

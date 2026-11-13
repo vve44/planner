@@ -9,12 +9,14 @@ export function useDaten() {
   useEffect(() => store.abonniere(() => setZaehler((n) => n + 1)), []);
 }
 
+// Liest die aktuelle Seite aus dem Teil hinter dem # in der Adresse.
+// "#/liste/abc" ergibt { name: 'liste', teil: 'abc' }.
 function leseRoute() {
   const roh = window.location.hash.replace(/^#\/?/, '');
-  return roh || 'heute';
+  const [name, teil] = roh.split('/');
+  return { name: name || 'heute', teil: teil || null };
 }
 
-// Aktuelle Seite der App, gesteuert über den Teil hinter dem # in der Adresse.
 export function useRoute() {
   const [route, setRoute] = useState(leseRoute());
   useEffect(() => {
