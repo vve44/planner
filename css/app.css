@@ -3,20 +3,14 @@
    Hell, ruhig, viel Luft. Die Menüführung nutzt warme Sand- und Brauntöne
    (#f3eee9, #e0cfc3, #c3a995, #a07e69, #715546, #3e2b23), Gold nur für
    Erledigtes und aktive Zustände. Die grün-blaue Palette bleibt dem Kalender
-   vorbehalten. Schrift: Outfit (liegt lokal im Ordner fonts).
+   vorbehalten. Schriften liegen lokal im Ordner fonts.
    ========================================================================== */
 
-/* Zehn Schriften zur Auswahl (Einstellungen). Alle liegen lokal im Ordner fonts. */
+/* Vier Schriften zur Auswahl (Einstellungen). Alle liegen lokal im Ordner fonts. */
 @font-face { font-family: 'Outfit'; src: url('../fonts/outfit.woff2') format('woff2'); font-weight: 100 900; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Manrope'; src: url('../fonts/manrope.woff2') format('woff2'); font-weight: 200 800; font-style: normal; font-display: swap; }
-@font-face { font-family: 'DM Sans'; src: url('../fonts/dm-sans.woff2') format('woff2'); font-weight: 100 1000; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Figtree'; src: url('../fonts/figtree.woff2') format('woff2'); font-weight: 300 900; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Nunito'; src: url('../fonts/nunito.woff2') format('woff2'); font-weight: 200 1000; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Quicksand'; src: url('../fonts/quicksand.woff2') format('woff2'); font-weight: 300 700; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Josefin Sans'; src: url('../fonts/josefin-sans.woff2') format('woff2'); font-weight: 100 700; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Montserrat'; src: url('../fonts/montserrat.woff2') format('woff2'); font-weight: 100 900; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Jost'; src: url('../fonts/jost.woff2') format('woff2'); font-weight: 100 900; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Raleway'; src: url('../fonts/raleway.woff2') format('woff2'); font-weight: 100 900; font-style: normal; font-display: swap; }
 
 /* ---------- Farben und Maße ---------- */
 
@@ -48,25 +42,21 @@
 }
 
 html[data-schrift='manrope'] { --schrift: 'Manrope', var(--ersatz); }
-html[data-schrift='dm-sans'] { --schrift: 'DM Sans', var(--ersatz); }
 html[data-schrift='figtree'] { --schrift: 'Figtree', var(--ersatz); }
-html[data-schrift='nunito'] { --schrift: 'Nunito', var(--ersatz); }
-html[data-schrift='quicksand'] { --schrift: 'Quicksand', var(--ersatz); }
-html[data-schrift='josefin-sans'] { --schrift: 'Josefin Sans', var(--ersatz); }
 html[data-schrift='montserrat'] { --schrift: 'Montserrat', var(--ersatz); }
-html[data-schrift='jost'] { --schrift: 'Jost', var(--ersatz); }
-html[data-schrift='raleway'] { --schrift: 'Raleway', var(--ersatz); }
 
 /* ---------- Grundlagen ---------- */
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html { height: 100%; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html { height: 100%; background: var(--flaeche); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
+/* Der Hintergrund hinter der App hat die Farbe der unteren Leiste. Sollte das iPhone
+   die App einmal nicht bis ganz nach unten ziehen, entsteht so kein andersfarbiger Streifen. */
 body {
   height: 100%;
   margin: 0;
-  background: var(--zart-2);
+  background: var(--flaeche);
   color: var(--tinte);
   font-family: var(--schrift);
   font-size: 16.5px;
@@ -95,7 +85,11 @@ strong { font-weight: 500; }
 
 #app {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  height: 100dvh;
   max-width: 560px;
   margin: 0 auto;
   display: flex;
@@ -104,16 +98,22 @@ strong { font-weight: 500; }
   overflow: hidden;
 }
 
+/* Vom Home-Bildschirm gestartet rechnet das iPhone "unten" teils zu kurz (um die Höhe
+   der Statusleiste). Dort gilt die echte Bildschirmhöhe, siehe js/bildschirm.js. */
+html.installiert #app { height: 100vh; height: var(--bildschirm, 100vh); }
+
 .start-hinweis { margin: auto; padding: 32px; text-align: center; color: var(--tinte-leise); }
 
 /* Kopfleiste */
 .kopf {
   flex: none;
-  padding: calc(var(--oben-sicher) + 14px) var(--rand) 16px;
+  /* Der Titel sitzt etwas tiefer: Direkt unter der Statusleiste legt iOS einen
+     weichen Farbverlauf über den Inhalt. */
+  padding: calc(var(--oben-sicher) + 24px) var(--rand) 10px;
   background: var(--akzent);
   color: #fff;
 }
-.kopf-zeile { display: flex; align-items: center; gap: 4px; min-height: 44px; }
+.kopf-zeile { display: flex; align-items: center; gap: 4px; min-height: 40px; }
 .kopf-zurueck {
   width: 44px;
   height: 44px;
@@ -900,26 +900,32 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
 .kal-scroll > * { flex: none; }
 .kal-abschnitt .abschnitt-kopf h2 { color: var(--tinte-leise); }
 
-/* ---------- Stundenraster ---------- */
+/* ---------- Stundenraster ----------
+   Der Tageskopf steht fest. Darunter scrollt .raster-senkrecht nur hoch und runter,
+   darin .raster-waagrecht nur seitlich. So folgt jede Wischbewegung einer Richtung. */
 
 .raster-rahmen {
+  --rinne: 46px;
   flex: 1;
   min-height: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
   background: var(--flaeche);
   border-top: 1px solid var(--linie);
 }
-.raster { min-width: 100%; }
-.raster-kopf {
-  position: sticky;
-  top: 0;
-  z-index: 4;
-  display: flex;
-  background: var(--flaeche);
-  border-bottom: 1px solid var(--linie);
-}
-.raster-ecke { position: sticky; left: 0; z-index: 5; flex: none; width: 46px; background: var(--flaeche); }
+.raster-rahmen.kompakt { --rinne: 36px; }
+
+.raster-kopf { flex: none; display: flex; background: var(--flaeche); border-bottom: 1px solid var(--linie); }
+.raster-ecke { flex: none; width: var(--rinne); }
+.kopf-fenster { flex: 1; min-width: 0; overflow: hidden; }
+.kopf-band { display: flex; will-change: transform; }
+
+.raster-senkrecht { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.raster-koerper { position: relative; display: flex; }
+.raster-waagrecht { flex: 1; min-width: 0; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; }
+.raster-waagrecht::-webkit-scrollbar { display: none; }
+.spalten { display: flex; }
+
 .tag-kopf {
   display: flex;
   flex-direction: column;
@@ -928,9 +934,9 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
   border-left: 1px solid var(--linie);
   transition: background-color 0.12s ease;
 }
-.raster-rahmen:not(.breit) .tag-kopf { flex-direction: row; flex-wrap: wrap; align-items: center; padding: 8px 8px 8px 6px; }
+.raster-rahmen.tag .tag-kopf { flex-direction: row; flex-wrap: wrap; align-items: center; padding: 8px 8px 8px 6px; }
 .tag-kopf.ablage-ziel { background: var(--zart); }
-.tag-kopf-datum { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px; color: var(--tinte-leise); }
+.tag-kopf-datum { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 30px; font-size: 13px; color: var(--tinte-leise); }
 .tag-kopf-datum strong {
   width: 28px;
   height: 28px;
@@ -966,11 +972,10 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
 }
 .ohne-chip .icon { color: var(--mittel); margin-left: -3px; }
 .ohne-chip span { overflow: hidden; text-overflow: ellipsis; }
-.raster-rahmen:not(.breit) .ganztag-chip, .raster-rahmen:not(.breit) .ohne-chip { min-height: 32px; padding: 4px 10px; font-size: 14px; }
+.raster-rahmen.tag .ganztag-chip, .raster-rahmen.tag .ohne-chip { min-height: 32px; padding: 4px 10px; font-size: 14px; }
 .ohne-mehr { font-size: 12px; color: var(--tinte-blass); padding: 0 2px; }
 
-.raster-koerper { position: relative; display: flex; }
-.stunden { position: sticky; left: 0; z-index: 3; flex: none; width: 46px; background: var(--flaeche); }
+.stunden { position: relative; flex: none; width: var(--rinne); background: var(--flaeche); }
 .stunden span {
   position: absolute;
   right: 6px;
@@ -1018,6 +1023,39 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
 .block-haken[aria-pressed='true'] span { background: var(--gold); border-color: var(--gold); }
 .block-text { flex: 1; min-width: 0; align-self: stretch; display: flex; flex-direction: column; justify-content: flex-start; padding: 3px 6px 3px 0; text-align: left; }
 
+/* Kurze Blöcke (unter etwa 35 Minuten): eine Zeile, kleinere Schrift, mittig */
+.block.kurz { font-size: 11.5px; line-height: 1.2; }
+.block.kurz.termin { justify-content: center; padding: 0 6px; }
+.block.kurz.aufgabe { align-items: stretch; }
+.block.kurz .block-haken { width: 22px; height: auto; }
+.block.kurz .block-haken span { width: 13px; height: 13px; }
+.block.kurz .block-text { justify-content: center; padding: 0 6px 0 0; }
+
+/* Alle 7 Tage nebeneinander: schmale Spalten, kleine Schrift, Titel dürfen umbrechen */
+.raster-rahmen.kompakt .tag-kopf { gap: 2px; padding: 4px 1px 5px; }
+.raster-rahmen.kompakt .tag-kopf-datum { flex-direction: column; gap: 0; min-height: 0; font-size: 11px; }
+.raster-rahmen.kompakt .tag-kopf-datum strong { width: 26px; height: 26px; font-size: 14.5px; }
+.raster-rahmen.kompakt .ganztag-chip, .raster-rahmen.kompakt .ohne-chip {
+  min-height: 17px;
+  padding: 1px 3px;
+  border-radius: 5px;
+  font-size: 10px;
+  line-height: 1.3;
+  text-overflow: clip;
+}
+.raster-rahmen.kompakt .ganztag-chip { border-left-width: 2px; }
+.raster-rahmen.kompakt .ohne-mehr { font-size: 10px; text-align: center; padding: 0; }
+.raster-rahmen.kompakt .stunden span { right: 4px; font-size: 10px; }
+.stunden span.erste { transform: translateY(3px); }
+.raster-rahmen.kompakt .block { border-radius: 5px; font-size: 10px; line-height: 1.18; }
+.raster-rahmen.kompakt .block strong { white-space: normal; overflow-wrap: anywhere; -webkit-hyphens: auto; hyphens: auto; text-overflow: clip; font-weight: 500; }
+.raster-rahmen.kompakt .block.kurz { font-size: 10px; }
+.raster-rahmen.kompakt .block.kurz strong { white-space: nowrap; }
+.raster-rahmen.kompakt .block.kurz.termin { padding: 0 2px 0 3px; }
+.raster-rahmen.kompakt .block.kurz .block-text { padding: 0 3px; }
+.raster-rahmen.kompakt .block.termin { padding: 2px 2px 2px 3px; border-left-width: 2px; }
+.raster-rahmen.kompakt .block-text { padding: 2px 3px; }
+
 .jetzt-linie { position: absolute; left: 0; right: 0; z-index: 2; height: 2px; margin-top: -1px; background: var(--gold); pointer-events: none; }
 .jetzt-linie::before {
   content: '';
@@ -1029,8 +1067,9 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
   border-radius: 50%;
   background: var(--gold);
 }
+.raster-rahmen.kompakt .jetzt-linie::before { left: -3px; top: -2px; width: 6px; height: 6px; }
 
-/* Drag & Drop */
+/* Drag & Drop: ein kleines Schild folgt dem Finger, der gestrichelte Rahmen zeigt das Ziel */
 [data-zieh-id] { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .wird-gezogen { opacity: 0.35; }
 .zieh-geist {
@@ -1038,12 +1077,20 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
   left: 0;
   top: 0;
   z-index: 50;
-  margin: 0;
+  max-width: 190px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: #4c6f72;
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   pointer-events: none;
-  opacity: 0.94;
-  box-shadow: 0 10px 26px rgba(34, 56, 58, 0.3);
+  box-shadow: 0 8px 20px rgba(34, 56, 58, 0.28);
 }
-.zieh-geist.ohne-chip { background: #a9c9c3; border-style: solid; border-color: #7ba6a5; color: #22383a; border-radius: 8px; padding: 4px 10px; font-size: 13px; white-space: nowrap; overflow: hidden; }
 .zieh-vorschau {
   position: absolute;
   left: 1px;
@@ -1058,6 +1105,10 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
   color: #3d5c5f;
   pointer-events: none;
 }
+.raster-rahmen.kompakt .zieh-vorschau { padding: 1px 2px; border-width: 1.5px; border-radius: 5px; font-size: 9.5px; }
+
+/* Umschalter in der 7-Tage-Ansicht: alle Tage auf einen Blick oder breitere Spalten */
+.kal-zoom { flex: none; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; color: var(--akzent); }
 
 /* ---------- Monat ---------- */
 
@@ -1093,3 +1144,80 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
 .feld.zeit, .datum-zeit .feld.zeit { flex: none; width: 118px; text-align: center; }
 input[type='time'].feld::-webkit-date-and-time-value { text-align: center; }
 .zahl-zeile .feld.zeit { width: 118px; }
+
+/* ==========================================================================
+   Habits (ab Etappe 5)
+   ========================================================================== */
+
+/* Zeilen: gedämpft heißt blass, aber nicht durchgestrichen (ausgelassen, Ziel erreicht, ruht) */
+.aufgabe.gedaempft .aufgabe-titel,
+.aufgabe.gedaempft .aufgabe-titel .icon,
+.aufgabe.gedaempft .aufgabe-meta,
+.aufgabe.gedaempft .aufgabe-meta .gold { color: var(--tinte-blass); }
+.aufgabe.habit.erledigt .aufgabe-meta .gold { color: var(--gold); }
+div.aufgabe-haupt { cursor: default; }
+.haken-kreis.voll { background: var(--gold); border-color: var(--gold); }
+.mengen-kreis { display: block; }
+
+.agenda-zeile.vorbei { opacity: 0.5; }
+.zeile.vorbei .zeile-text strong, .zeile.vorbei .listen-icon { color: var(--tinte-blass); }
+
+/* Fehlermeldung und Knopf im festen Fuß eines Fensters */
+.fuss-stapel { display: flex; flex-direction: column; gap: 10px; }
+
+/* Fenster für einen Tag: Stand der Menge */
+.menge-stand { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: var(--rund); background: var(--zart); }
+.menge-stand p { font-size: 16px; color: var(--tinte-leise); }
+.menge-stand strong { font-size: 30px; font-weight: 500; line-height: 1; color: var(--tinte); margin-right: 4px; }
+.menge-balken { height: 8px; border-radius: 4px; background: var(--zart-2); overflow: hidden; }
+.menge-balken i { display: block; height: 100%; border-radius: 4px; background: var(--gold); transition: width 0.2s ease; }
+.menge-stand .menge-fertig { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 500; color: var(--gold); }
+
+/* Tagesziel und Einheit nebeneinander */
+.menge-felder { display: grid; grid-template-columns: 1fr 1.6fr; gap: 10px; }
+.menge-felder label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.menge-felder span { font-size: 14px; color: var(--tinte-leise); }
+.menge-felder .feld { width: 100%; }
+
+/* Auswertung: Kennzahlen in zwei Spalten */
+.zahlen-raster { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.zahlen-raster > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 13px 14px 14px;
+  border-radius: var(--rund-klein);
+  border: 1px solid var(--linie);
+  background: var(--flaeche);
+}
+.zahlen-raster dt { display: flex; align-items: center; gap: 6px; font-size: 13.5px; line-height: 1.25; color: var(--tinte-leise); }
+.zahlen-raster dt .icon { color: var(--zart-3); }
+.zahlen-raster dd { font-size: 22px; font-weight: 450; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.zahlen-raster .gold dd, .zahlen-raster .gold dt .icon { color: var(--gold); }
+
+/* Verlauf: eine Spalte je Woche, Montag oben */
+.verlauf { display: flex; flex-direction: column; gap: 10px; padding: 14px 12px 12px; }
+.heat { --luecke: 3px; display: flex; flex-direction: column; gap: 4px; }
+.heat-monate, .heat-raster { display: grid; grid-template-columns: 22px repeat(var(--wochen), minmax(0, 1fr)); gap: var(--luecke); }
+.heat-monate span { min-width: 0; font-size: 11px; line-height: 1.2; color: var(--tinte-blass); white-space: nowrap; overflow: visible; }
+/* Alle Zellen liegen in einem Raster: sieben Zeilen (Montag oben), gefüllt wird spaltenweise. */
+.heat-raster { grid-template-rows: repeat(7, auto); grid-auto-flow: column; }
+.heat-tag { align-self: center; font-size: 10.5px; line-height: 1; color: var(--tinte-blass); }
+.heat-zelle { display: block; width: 100%; aspect-ratio: 1; border-radius: 4px; background: var(--zart); }
+/* Tage vor dem Beginn des Habits: nur ein zarter Umriss. Künftige Tage bleiben leer. */
+.heat-zelle.s-vor { background: transparent; box-shadow: inset 0 0 0 1px var(--linie); }
+.heat-zelle.zukunft { background: transparent; }
+.heat-zelle.s-1 { background: #dcc9ba; }
+.heat-zelle.s-2 { background: var(--zart-3); }
+.heat-zelle.s-3 { background: var(--mittel); }
+.heat-zelle.s-4 { background: var(--akzent); }
+.heat-zelle.s-ruhe {
+  background: repeating-linear-gradient(135deg, var(--zart-2) 0 2px, transparent 2px 5px);
+  box-shadow: inset 0 0 0 1px var(--zart-2);
+}
+.heat-zelle.heute { outline: 2px solid var(--gold); outline-offset: 1px; }
+.heat-fuss { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.heat-legende { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 12.5px; color: var(--tinte-leise); }
+.heat-legende span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.heat-legende .heat-zelle { width: 13px; flex: none; }
+.heat-nav { flex: none; display: flex; }

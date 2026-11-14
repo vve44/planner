@@ -9,11 +9,11 @@ import { TYP_EINZAHL } from '../typen.js';
 
 const KACHELN = [
   { icon: 'bookmark', name: 'Merkliste', route: 'merkliste' },
+  { icon: 'flame', name: 'Habits', route: 'habits' },
   { icon: 'sun', name: 'Tagesroutinen', route: 'tagesroutinen' },
   { icon: 'clipboard-list', name: 'Routinen', route: 'routinen' },
   { icon: 'repeat', name: 'Aufgabenpools', route: 'pools' },
   { icon: 'tags', name: 'Kategorien', route: 'kategorien' },
-  { icon: 'flame', name: 'Habits', etappe: 5 },
   { icon: 'notebook-pen', name: 'Notizen', etappe: 6 },
   { icon: 'target', name: 'Ziele', etappe: 7 },
   { icon: 'droplet', name: 'Zyklus', etappe: 7 },
@@ -32,6 +32,7 @@ export function Uebersicht() {
   const merk = aufgaben.merkliste();
   const zusatz = {
     merkliste: mehrzahl(merk ? aufgaben.alleAufgaben().filter((a) => a.projektId === merk.id && !a.erledigtAm).length : 0, 'Eintrag', 'Einträge'),
+    habits: mehrzahl(store.liste('habit').length, 'Habit', 'Habits'),
     tagesroutinen: mehrzahl(store.liste('tagesroutine').length, 'Routine', 'Routinen'),
     routinen: mehrzahl(store.liste('routine').length, 'Vorlage', 'Vorlagen'),
     pools: mehrzahl(store.liste('pool').length, 'Pool', 'Pools'),

@@ -14,15 +14,15 @@ import { sucheUpdate, updateBereit, uebernimmUpdate, abonniereUpdate, offlineUnt
 export const SCHRIFTEN = [
   { wert: 'outfit', name: 'Outfit', text: 'Modern und weich' },
   { wert: 'manrope', name: 'Manrope', text: 'Sachlich, gut lesbar' },
-  { wert: 'dm-sans', name: 'DM Sans', text: 'Klar und freundlich' },
   { wert: 'figtree', name: 'Figtree', text: 'Schlicht und warm' },
-  { wert: 'nunito', name: 'Nunito', text: 'Rund und weich' },
-  { wert: 'quicksand', name: 'Quicksand', text: 'Verspielt und rund' },
-  { wert: 'josefin-sans', name: 'Josefin Sans', text: 'Elegant und schmal' },
   { wert: 'montserrat', name: 'Montserrat', text: 'Breit und markant' },
-  { wert: 'jost', name: 'Jost', text: 'Geometrisch und klar' },
-  { wert: 'raleway', name: 'Raleway', text: 'Fein und elegant' },
 ];
+
+// Die gespeicherte Schrift, falls es sie noch gibt, sonst Outfit.
+export function gewaehlteSchrift() {
+  const wert = store.einstellung('schrift', 'outfit');
+  return SCHRIFTEN.some((s) => s.wert === wert) ? wert : 'outfit';
+}
 
 export function Einstellungen() {
   useDaten();
@@ -37,7 +37,7 @@ export function Einstellungen() {
     return abonniereUpdate(() => setUpdateZaehler((n) => n + 1));
   }, []);
 
-  const schrift = store.einstellung('schrift', 'outfit');
+  const schrift = gewaehlteSchrift();
   const status = backupStatus();
   const anzahl = store.alleDatensaetze().filter((d) => !d.geloeschtAm).length;
 

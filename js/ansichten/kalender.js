@@ -40,6 +40,8 @@ export function Kalender() {
   const [terminOffen, setTerminOffen] = useState(null);
   const [entwurf, setEntwurf] = useState('');
   const ansicht = store.einstellung('kalender.ansicht', 'tag');
+  // 7-Tage-Ansicht: alle Tage auf einen Blick (Standard) oder breitere Spalten zum seitlichen Scrollen.
+  const wocheBreit = store.einstellung('kalender.wocheBreit', false) === true;
   const tag0 = heute();
 
   const setDatum = (d) => { gemerkterTag = d; setDatumRoh(d); };
@@ -105,6 +107,13 @@ export function Kalender() {
           </button>
           <h2>${titel}</h2>
           ${!zeigtHeute && html`<button class="kal-heute" type="button" onClick=${() => setDatum(tag0)}>Heute</button>`}
+          ${ansicht === 'woche' && html`
+            <button class="kal-zoom" type="button" aria-pressed=${wocheBreit}
+              aria-label=${wocheBreit ? 'Alle 7 Tage auf einen Blick zeigen' : 'Tage größer zeigen und seitlich scrollen'}
+              onClick=${() => store.setzeEinstellung('kalender.wocheBreit', !wocheBreit)}>
+              <${Icon} name=${wocheBreit ? 'zoom-out' : 'zoom-in'} groesse=${21} />
+            </button>
+          `}
           <button class="knopf-rund" type="button" aria-label="Vor blättern" onClick=${() => blaettere(1)}>
             <${Icon} name="chevron-right" />
           </button>
@@ -118,8 +127,11 @@ export function Kalender() {
         `}
       </div>
 
-      ${ansicht === 'tag' && html`<${Raster} key="tag" tage=${[datum]} onTermin=${oeffneTermin} onLeer=${neuerTermin} />`}
-      ${ansicht === 'woche' && html`<${Raster} key="woche" tage=${woche} breit=${true} onTermin=${oeffneTermin} onLeer=${neuerTermin} />`}
+      ${ansicht === 'tag' && html`<${Raster} key="tag" tage=${[datum]} modus="tag" onTermin=${oeffneTermin} onLeer=${neuerTermin} />`}
+      ${ansicht === 'woche' && html`
+        <${Raster} key="woche" tage=${woche} modus=${wocheBreit ? 'breit' : 'kompakt'} onTermin=${oeffneTermin} onLeer=${neuerTermin}
+          onTag=${(tag) => { setDatum(tag); setAnsicht('tag'); }} />
+      `}
       ${ansicht === 'monat' && html`
         <${Monat} datum=${datum} onTag=${setDatum} onTagOeffnen=${(tag) => { setDatum(tag); setAnsicht('tag'); }} onTermin=${oeffneTermin} />
       `}

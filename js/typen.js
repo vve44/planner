@@ -33,6 +33,7 @@ export const TYP_EINZAHL = {
   routine: 'Routine',
   pool: 'Aufgabenpool',
   poolEintrag: 'Pool-Eintrag',
+  habit: 'Habit',
 };
 
 // Farben für Kategorien: die Töne der Palette plus gedeckte Ergänzungen,
@@ -76,7 +77,7 @@ export const WOCHENTAGE = [
 // Vorschläge für die Dauer einer Aufgabe in Minuten.
 export const DAUER_VORSCHLAEGE = [15, 30, 45, 60, 90, 120];
 
-// Icons zur Auswahl für Kategorien, Listen und Aufgaben (später auch Habits).
+// Icons zur Auswahl für Kategorien, Listen, Aufgaben und Habits.
 export const AUSWAHL_ICONS = [
   'heart-pulse', 'graduation-cap', 'briefcase', 'cake', 'house', 'dumbbell', 'book-open', 'shopping-cart',
   'utensils', 'plane', 'car', 'music', 'palette', 'star', 'gift', 'users',

@@ -1,8 +1,8 @@
 // Tagesbereich: der Stand des heutigen Tages.
-// Von oben nach unten: Tagesroutinen, Überfälliges, Aufgaben für heute, Vorschläge aus den Pools.
-// Habits und Zyklusphase kommen mit späteren Etappen dazu.
+// Von oben nach unten: Termine, Tagesroutinen, Habits, Überfälliges, Aufgaben für heute,
+// Vorschläge aus den Pools. Die Zyklusphase kommt mit einer späteren Etappe dazu.
 
-import { html } from '../../bibliothek/preact-htm.js';
+import { html, useState } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
 import { melde } from '../bausteine/fenster.js';
 import { AufgabenGruppe } from '../bausteine/aufgabe-zeile.js';
@@ -14,12 +14,16 @@ import * as store from '../store.js';
 import * as aufgaben from '../aufgaben.js';
 import * as tagesroutinen from '../tagesroutinen.js';
 import * as pools from '../pools.js';
-import { heute, istInstalliert, vorTagen, tagLesbar, dauerLesbar } from '../hilfen.js';
+import * as termine from '../termine.js';
+import * as habits from '../habits.js';
+import { TerminBlatt } from '../bausteine/termin-blatt.js';
+import { HabitZeile } from '../bausteine/habit-teile.js';
+import { heute, istInstalliert, vorTagen, tagLesbar, dauerLesbar, jetztMin } from '../hilfen.js';
 
 const SPAETER = [
-  { icon: 'flame', name: 'Habits', etappe: 5 },
   { icon: 'droplet', name: 'Zyklusphase', etappe: 7 },
 ];
+const TERMIN_FARBE = '#7ba6a5';
 
 export function Heute() {
   useDaten();
@@ -35,7 +39,9 @@ export function Heute() {
       ${!istInstalliert() && html`<${InstallHinweis} />`}
       <${BackupKarte} status=${status} />
 
+      <${TermineHeute} tag=${tag} />
       <${Tagesroutinen} tag=${tag} />
+      <${HabitsHeute} tag=${tag} />
 
       <${AufgabenGruppe} titel="Überfällig" liste=${ueberfaellig} warnung=${true} zeigeDatum=${true} mitMorgen=${true} />
       <${AufgabenGruppe} titel="Aufgaben für heute" liste=${[...offen, ...geschafft]} mitMorgen=${true}
@@ -57,6 +63,85 @@ export function Heute() {
         <${Icon} name="plus" groesse=${26} />
       </button>
     </div>
+  `;
+}
+
+// ---------- Termine des Tages (nur wenn es welche gibt) ----------
+
+function TermineHeute({ tag }) {
+  const [offen, setOffen] = useState(null);
+  const { ganztags, zeitlich } = termine.eintraegeAm(tag);
+  const jetzt = jetztMin();
+  const zeilen = [
+    ...ganztags.map((v) => ({ v, zeit: 'Ganztägig', vorbei: false })),
+    ...zeitlich.map((v) => ({ v, zeit: termine.zeitText(v, tag), vorbei: v.bisMin <= jetzt })),
+  ];
+  if (!zeilen.length && !offen) return null;
+
+  return html`
+    <section class="abschnitt">
+      <div class="abschnitt-kopf">
+        <h2>Termine</h2>
+        <span class="kopf-rechts">
+          <span>${zeilen.length}</span>
+          <button class="knopf-text" type="button" onClick=${() => geheZu('kalender')}>Kalender</button>
+        </span>
+      </div>
+      <ul class="gruppe">
+        ${zeilen.map(({ v, zeit, vorbei }) => {
+          const kategorie = v.termin.kategorieId ? store.hole(v.termin.kategorieId) : null;
+          const kategorieDa = kategorie && !kategorie.geloeschtAm;
+          return html`
+            <li key=${`${v.termin.id}-${v.start}`}>
+              <button type="button" class=${`agenda-zeile ${vorbei ? 'vorbei' : ''}`} onClick=${() => setOffen({ id: v.termin.id, start: v.start })}>
+                <span class="agenda-zeit">${zeit}</span>
+                <i class="agenda-farbe" style=${`background:${kategorieDa ? kategorie.farbe : TERMIN_FARBE}`}></i>
+                <span class="agenda-text">
+                  <strong>${v.termin.titel}</strong>
+                  ${kategorieDa && html`<span>${kategorie.name}</span>`}
+                </span>
+              </button>
+            </li>
+          `;
+        })}
+      </ul>
+      ${offen && html`<${TerminBlatt} key=${offen.id} offen=${offen} onSchliessen=${() => setOffen(null)} />`}
+    </section>
+  `;
+}
+
+// ---------- Habits, die heute anstehen ----------
+
+function HabitsHeute({ tag }) {
+  const alle = habits.alle();
+  const urlaub = habits.urlaubAm(tag);
+  // Was heute nicht dran ist oder ruht, erscheint hier nicht.
+  const sichtbar = alle
+    .map((habit) => ({ habit, lage: habits.lageAm(habit, tag) }))
+    .filter(({ lage }) => lage !== 'frei' && lage !== 'ruht');
+  const liste = [...sichtbar.filter((x) => x.lage === 'offen'), ...sichtbar.filter((x) => x.lage !== 'offen')];
+  const erledigt = sichtbar.filter((x) => x.lage === 'erledigt').length;
+  const zuTun = sichtbar.filter((x) => x.lage === 'offen' || x.lage === 'erledigt').length;
+
+  let leerText = 'Heute steht kein Habit an.';
+  if (!alle.length) leerText = 'Gewohnheiten mit Streak und Statistik, zum Beispiel täglich lesen oder dreimal pro Woche Sport.';
+  else if (urlaub && !liste.length) leerText = `Urlaub bis ${tagLesbar(urlaub.bis)}: Alle Habits ruhen, die Streaks bleiben.`;
+
+  return html`
+    <section class="abschnitt">
+      <div class="abschnitt-kopf">
+        <h2>Habits</h2>
+        <span class="kopf-rechts">
+          ${zuTun > 0 && html`<span>${erledigt}/${zuTun}</span>`}
+          <button class="knopf-text" type="button" onClick=${() => geheZu('habits')}>${alle.length ? 'Alle' : 'Einrichten'}</button>
+        </span>
+      </div>
+      ${liste.length ? html`
+        <ul class="gruppe">
+          ${liste.map(({ habit }) => html`<${HabitZeile} key=${habit.id} habit=${habit} tag=${tag} />`)}
+        </ul>
+      ` : html`<div class="gruppe"><p class="leer-zeile">${leerText}</p></div>`}
+    </section>
   `;
 }
 

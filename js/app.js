@@ -17,9 +17,12 @@ import { Uebersicht } from './ansichten/uebersicht.js';
 import { Tagesroutinen } from './ansichten/tagesroutinen.js';
 import { Routinen } from './ansichten/routinen.js';
 import { Pools, Pool } from './ansichten/pools.js';
+import { Habits, Habit } from './ansichten/habits.js';
+import * as habits from './habits.js';
 import { Kategorien } from './ansichten/kategorien.js';
 import { Papierkorb } from './ansichten/papierkorb.js';
-import { Einstellungen } from './ansichten/einstellungen.js';
+import { Einstellungen, gewaehlteSchrift } from './ansichten/einstellungen.js';
+import { richteBildschirmEin } from './bildschirm.js';
 
 // Alle Seiten der App.
 //   tab      – welcher Punkt der unteren Leiste leuchtet
@@ -36,6 +39,8 @@ const SEITEN = {
   routinen: { titel: 'Routinen', ansicht: Routinen, tab: 'uebersicht', zurueck: 'uebersicht' },
   pools: { titel: 'Aufgabenpools', ansicht: Pools, tab: 'uebersicht', zurueck: 'herkunft' },
   pool: { titel: 'Pool', ansicht: Pool, tab: 'uebersicht', zurueck: 'pools' },
+  habits: { titel: 'Habits', ansicht: Habits, tab: 'uebersicht', zurueck: 'herkunft' },
+  habit: { titel: 'Habit', ansicht: Habit, tab: 'uebersicht', zurueck: 'habits' },
   kategorien: { titel: 'Kategorien', ansicht: Kategorien, tab: 'uebersicht', zurueck: 'uebersicht' },
   papierkorb: { titel: 'Papierkorb', ansicht: Papierkorb, tab: 'uebersicht', zurueck: 'uebersicht' },
   einstellungen: { titel: 'Einstellungen', ansicht: Einstellungen, tab: 'uebersicht', zurueck: 'uebersicht' },
@@ -59,7 +64,7 @@ function App() {
   const [, setUpdateZaehler] = useState(0);
 
   // Gewählte Schrift auf die ganze App anwenden.
-  const schrift = store.einstellung('schrift', 'outfit');
+  const schrift = gewaehlteSchrift();
   useEffect(() => {
     document.documentElement.dataset.schrift = schrift;
   }, [schrift]);
@@ -71,13 +76,13 @@ function App() {
   if (zurueck === 'herkunft') {
     zurueck = letzterHauptbereich === 'kalender' ? 'uebersicht' : letzterHauptbereich;
     tab = zurueck;
-  } else if (route.name === 'pool') {
-    // Ein einzelner Pool leuchtet unter dem Bereich, aus dem die Pool-Liste geöffnet wurde.
+  } else if (route.name === 'pool' || route.name === 'habit') {
+    // Ein einzelner Pool (ein einzelnes Habit) leuchtet unter dem Bereich, aus dem die Liste geöffnet wurde.
     tab = letzterHauptbereich === 'kalender' ? 'uebersicht' : letzterHauptbereich;
   }
 
   let titel = seite.titel;
-  if (route.name === 'liste' || route.name === 'pool') {
+  if (route.name === 'liste' || route.name === 'pool' || route.name === 'habit') {
     const eintrag = route.teil ? store.hole(route.teil) : null;
     if (eintrag && eintrag.name) titel = eintrag.name;
   }
@@ -152,7 +157,9 @@ async function starte() {
   });
 
   aufgaben.sicherstelleMerkliste();
-  document.documentElement.dataset.schrift = store.einstellung('schrift', 'outfit');
+  habits.raeumeAuf();
+  document.documentElement.dataset.schrift = gewaehlteSchrift();
+  richteBildschirmEin();
 
   wurzel.innerHTML = '';
   render(html`<${App} />`, wurzel);
