@@ -108,6 +108,68 @@ export function vorTagen(tage) {
   return `vor ${tage} Tagen`;
 }
 
+// ---------- Uhrzeiten und Kalender ----------
+
+// "09:30" -> 570 Minuten seit Mitternacht
+export function zeitZuMin(zeit) {
+  const [h, m] = zeit.split(':').map(Number);
+  return h * 60 + m;
+}
+
+// 570 -> "09:30"
+export function minZuZeit(min) {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+// Minuten seit Mitternacht, jetzt.
+export function jetztMin() {
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+// Montag der Woche, in der der Tag liegt.
+export function montagVon(text) {
+  return plusTage(text, -(wochentagNr(text) - 1));
+}
+
+export function monatsErster(text) {
+  return `${text.slice(0, 8)}01`;
+}
+
+const FORMAT_MONAT = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' });
+const FORMAT_WOCHENTAG_KURZ = new Intl.DateTimeFormat('de-DE', { weekday: 'short' });
+const FORMAT_TAG_MONAT = new Intl.DateTimeFormat('de-DE', { day: 'numeric', month: 'short' });
+const FORMAT_TAG_MONAT_JAHR = new Intl.DateTimeFormat('de-DE', { day: 'numeric', month: 'short', year: 'numeric' });
+
+// "November 2026"
+export function monatLesbar(text) {
+  return FORMAT_MONAT.format(datumAusText(text));
+}
+
+// "Sa"
+export function wochentagKurz(text) {
+  return FORMAT_WOCHENTAG_KURZ.format(datumAusText(text)).replace('.', '');
+}
+
+// "Samstag, 14. November"
+export function tagAusfuehrlich(text) {
+  return FORMAT_LANG.format(datumAusText(text));
+}
+
+// "16. – 22. Nov. 2026"
+export function spanneLesbar(von, bis) {
+  return `${FORMAT_TAG_MONAT.format(datumAusText(von))} – ${FORMAT_TAG_MONAT_JAHR.format(datumAusText(bis))}`;
+}
+
+// Mischt eine Farbe mit Weiß (anteil 0 = Farbe, 1 = Weiß), für zarte Kalenderblöcke.
+export function aufhellen(hex, anteil) {
+  const wert = hex.replace('#', '');
+  const teile = [0, 2, 4].map((i) => parseInt(wert.slice(i, i + 2), 16));
+  return `#${teile.map((t) => Math.round(t + (255 - t) * anteil).toString(16).padStart(2, '0')).join('')}`;
+}
+
 // ---------- Text ----------
 
 // Dauer lesbar: "30 Min", "1 Std", "1 Std 30 Min"

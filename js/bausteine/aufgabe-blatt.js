@@ -99,6 +99,7 @@ function AufgabeBlatt({ id, vorgaben, onSchliessen }) {
     titel: start.titel,
     dauerMin: start.dauerMin,
     plandatum: start.plandatum,
+    startzeit: start.startzeit || null,
     deadline: start.deadline,
     prioritaet: start.prioritaet,
     kategorieId: start.kategorieId,
@@ -165,6 +166,8 @@ function AufgabeBlatt({ id, vorgaben, onSchliessen }) {
       titel,
       // Eine Wiederholung braucht einen Starttag.
       plandatum: f.plandatum || (wiederholt ? heute() : null),
+      // Ohne Tag gibt es auch keine Uhrzeit.
+      startzeit: f.plandatum || wiederholt ? f.startzeit : null,
       notiz: f.notiz.trim(),
       checkliste: sauber(f.checkliste, checkEntwurf),
       unteraufgaben: sauber(f.unteraufgaben, unterEntwurf),
@@ -234,6 +237,17 @@ function AufgabeBlatt({ id, vorgaben, onSchliessen }) {
           </div>
           <input class="feld" type="date" aria-label="Anderes Datum" value=${f.plandatum || ''}
             onInput=${(e) => setze({ plandatum: e.target.value || null })} />
+          ${f.plandatum && html`
+            <div class="zahl-zeile">
+              <span id="uhrzeit-name">Uhrzeit</span>
+              <input class="feld zeit" type="time" aria-labelledby="uhrzeit-name" value=${f.startzeit || ''}
+                onInput=${(e) => setze({ startzeit: e.target.value || null })} />
+              ${f.startzeit && html`
+                <button class="knopf-text" type="button" onClick=${() => setze({ startzeit: null })}>Entfernen</button>
+              `}
+            </div>
+            <p class="feld-hinweis">Mit Uhrzeit steht die Aufgabe als Block im Kalender. Du kannst sie dort auch per Drag & Drop einplanen.</p>
+          `}
         </fieldset>
 
         <fieldset class="feld-gruppe">

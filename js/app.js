@@ -11,7 +11,7 @@ import { BackupDialoge } from './bausteine/backup-dialoge.js';
 import { AufgabenFenster } from './bausteine/aufgabe-blatt.js';
 import { starteOfflineBetrieb, abonniereUpdate, updateBereit, uebernimmUpdate } from './aktualisierung.js';
 import { Heute } from './ansichten/heute.js';
-import { Kalender } from './ansichten/platzhalter.js';
+import { Kalender } from './ansichten/kalender.js';
 import { Aufgaben, Liste, Merkliste } from './ansichten/aufgaben.js';
 import { Uebersicht } from './ansichten/uebersicht.js';
 import { Tagesroutinen } from './ansichten/tagesroutinen.js';
@@ -58,6 +58,12 @@ function App() {
   const inhalt = useRef(null);
   const [, setUpdateZaehler] = useState(0);
 
+  // Gewählte Schrift auf die ganze App anwenden.
+  const schrift = store.einstellung('schrift', 'outfit');
+  useEffect(() => {
+    document.documentElement.dataset.schrift = schrift;
+  }, [schrift]);
+
   if (TABS.some((t) => t.route === route.name)) letzterHauptbereich = route.name;
 
   let tab = seite.tab;
@@ -100,7 +106,7 @@ function App() {
       </div>
     </header>
 
-    <main class="inhalt" ref=${inhalt}>
+    <main class=${`inhalt ${route.name === 'kalender' ? 'fest' : ''}`} ref=${inhalt}>
       ${updateBereit() && html`
         <div class="update-band">
           <span>Eine neue Version liegt bereit.</span>
@@ -146,6 +152,7 @@ async function starte() {
   });
 
   aufgaben.sicherstelleMerkliste();
+  document.documentElement.dataset.schrift = store.einstellung('schrift', 'outfit');
 
   wurzel.innerHTML = '';
   render(html`<${App} />`, wurzel);

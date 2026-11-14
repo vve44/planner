@@ -4,7 +4,7 @@
 
 // Bei jeder neuen Etappe wird diese Versionsnummer erhöht. Daran erkennt das
 // Handy, dass es neue Dateien gibt.
-const VERSION = 'planner-3.0.0';
+const VERSION = 'planner-4.0.0';
 
 // Alle Dateien der App. Die Liste wird beim Zusammenstellen automatisch gefüllt.
 /* DATEIEN-ANFANG */
@@ -12,7 +12,16 @@ const DATEIEN = [
   './',
   'bibliothek/preact-htm.js',
   'css/app.css',
+  'fonts/dm-sans.woff2',
+  'fonts/figtree.woff2',
+  'fonts/josefin-sans.woff2',
+  'fonts/jost.woff2',
+  'fonts/manrope.woff2',
+  'fonts/montserrat.woff2',
+  'fonts/nunito.woff2',
   'fonts/outfit.woff2',
+  'fonts/quicksand.woff2',
+  'fonts/raleway.woff2',
   'icons/icon-180.png',
   'icons/icon-192.png',
   'icons/icon-512.png',
@@ -21,9 +30,9 @@ const DATEIEN = [
   'js/ansichten/aufgaben.js',
   'js/ansichten/einstellungen.js',
   'js/ansichten/heute.js',
+  'js/ansichten/kalender.js',
   'js/ansichten/kategorien.js',
   'js/ansichten/papierkorb.js',
-  'js/ansichten/platzhalter.js',
   'js/ansichten/pools.js',
   'js/ansichten/routinen.js',
   'js/ansichten/tagesroutinen.js',
@@ -38,6 +47,8 @@ const DATEIEN = [
   'js/bausteine/fenster.js',
   'js/bausteine/icon-wahl.js',
   'js/bausteine/icon.js',
+  'js/bausteine/kalender-raster.js',
+  'js/bausteine/termin-blatt.js',
   'js/db.js',
   'js/haken.js',
   'js/hilfen.js',
@@ -47,6 +58,7 @@ const DATEIEN = [
   'js/routinen.js',
   'js/store.js',
   'js/tagesroutinen.js',
+  'js/termine.js',
   'js/typen.js',
   'js/version.js',
   'manifest.webmanifest',

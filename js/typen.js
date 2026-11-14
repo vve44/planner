@@ -28,6 +28,7 @@ export const TYP_EINZAHL = {
   kategorie: 'Kategorie',
   projekt: 'Projekt oder Liste',
   aufgabe: 'Aufgabe',
+  termin: 'Termin',
   tagesroutine: 'Tagesroutine',
   routine: 'Routine',
   pool: 'Aufgabenpool',

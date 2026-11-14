@@ -55,6 +55,7 @@ export function AufgabeZeile({ aufgabe, zeigeDatum = false, zeigeListe = true, m
             ${zeigeDatum && aufgabe.plandatum && html`
               <span class=${ueberfaellig ? 'warnung' : ''}><${Icon} name="calendar" groesse=${14} /> ${tagLesbar(aufgabe.plandatum)}</span>
             `}
+            ${aufgabe.startzeit && aufgabe.plandatum && html`<span><${Icon} name="clock" groesse=${14} /> ${aufgabe.startzeit} Uhr</span>`}
             ${aufgabe.dauerMin && html`<span><${Icon} name="timer" groesse=${14} /> ${dauerLesbar(aufgabe.dauerMin)}</span>`}
             ${serie && html`<span><${Icon} name="repeat" groesse=${14} /> ${beschreibeRegel(serie.regel, serie.modus)}</span>`}
             ${aufgabe.deadline && html`

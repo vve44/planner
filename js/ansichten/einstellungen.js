@@ -11,6 +11,19 @@ import { datumMitZeit, vorTagen, istInstalliert } from '../hilfen.js';
 import { APP_VERSION, ETAPPE, ETAPPE_NAME } from '../version.js';
 import { sucheUpdate, updateBereit, uebernimmUpdate, abonniereUpdate, offlineUnterstuetzt } from '../aktualisierung.js';
 
+export const SCHRIFTEN = [
+  { wert: 'outfit', name: 'Outfit', text: 'Modern und weich' },
+  { wert: 'manrope', name: 'Manrope', text: 'Sachlich, gut lesbar' },
+  { wert: 'dm-sans', name: 'DM Sans', text: 'Klar und freundlich' },
+  { wert: 'figtree', name: 'Figtree', text: 'Schlicht und warm' },
+  { wert: 'nunito', name: 'Nunito', text: 'Rund und weich' },
+  { wert: 'quicksand', name: 'Quicksand', text: 'Verspielt und rund' },
+  { wert: 'josefin-sans', name: 'Josefin Sans', text: 'Elegant und schmal' },
+  { wert: 'montserrat', name: 'Montserrat', text: 'Breit und markant' },
+  { wert: 'jost', name: 'Jost', text: 'Geometrisch und klar' },
+  { wert: 'raleway', name: 'Raleway', text: 'Fein und elegant' },
+];
+
 export function Einstellungen() {
   useDaten();
   const [dauerhaft, setDauerhaft] = useState(null);
@@ -24,6 +37,7 @@ export function Einstellungen() {
     return abonniereUpdate(() => setUpdateZaehler((n) => n + 1));
   }, []);
 
+  const schrift = store.einstellung('schrift', 'outfit');
   const status = backupStatus();
   const anzahl = store.alleDatensaetze().filter((d) => !d.geloeschtAm).length;
 
@@ -39,6 +53,22 @@ export function Einstellungen() {
 
   return html`
     <div class="seite">
+      <section class="abschnitt">
+        <h2>Schrift</h2>
+        <div class="schrift-wahl" role="radiogroup" aria-label="Schrift">
+          ${SCHRIFTEN.map((s) => html`
+            <button type="button" role="radio" aria-checked=${schrift === s.wert}
+              class=${`schrift-karte ${schrift === s.wert ? 'aktiv' : ''}`}
+              style=${`font-family:'${s.name}', var(--ersatz)`}
+              onClick=${() => store.setzeEinstellung('schrift', s.wert)}>
+              <span class="schrift-probe">${s.name}</span>
+              <span class="schrift-name">${s.text}</span>
+            </button>
+          `)}
+        </div>
+        <p class="text-leise">Tippe eine Schrift an, sie gilt sofort in der ganzen App.</p>
+      </section>
+
       <section class="abschnitt">
         <h2>Backup</h2>
         <dl class="werte">

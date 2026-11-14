@@ -284,12 +284,15 @@ export function fortschritt(aufgabe) {
   return { gesamt, erledigt: aufgabe.unteraufgaben.filter((u) => u.erledigt).length };
 }
 
-// Offene zuerst nach Plandatum (ohne Datum zuletzt), dann nach Priorität, dann nach Anlagezeit.
+// Nach Plandatum (ohne Datum zuletzt), dann nach Uhrzeit, Priorität und Anlagezeit.
 export function sortiere(liste) {
   return [...liste].sort((a, b) => {
     const da = a.plandatum || '9999-99-99';
     const db = b.plandatum || '9999-99-99';
     if (da !== db) return da < db ? -1 : 1;
+    const za = a.startzeit || '99:99';
+    const zb = b.startzeit || '99:99';
+    if (za !== zb) return za < zb ? -1 : 1;
     if (a.prioritaet !== b.prioritaet) return b.prioritaet - a.prioritaet;
     return a.erstelltAm < b.erstelltAm ? -1 : 1;
   });

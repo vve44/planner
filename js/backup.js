@@ -16,7 +16,7 @@ export const ERINNERUNG_TAGE = 7;
 export const PASSWORT_MINDESTLAENGE = 8;
 
 // Einstellungen, die mit ins Backup wandern (der Schlüssel gehört nicht dazu).
-const EINSTELLUNGEN_IM_BACKUP = [];
+const EINSTELLUNGEN_IM_BACKUP = ['schrift', 'kalender.ansicht'];
 
 const kodierer = new TextEncoder();
 const dekodierer = new TextDecoder();

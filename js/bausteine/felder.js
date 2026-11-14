@@ -86,7 +86,7 @@ export function DauerWahl({ wert, onWahl }) {
 
 // ---------- Abstand: "Alle 2 Wochen" ----------
 
-export function AbstandWahl({ n, einheit, onAendern }) {
+export function AbstandWahl({ n, einheit, onAendern, mitJahren = false }) {
   return html`
     <div class="zahl-zeile">
       <span>Alle</span>
@@ -98,6 +98,7 @@ export function AbstandWahl({ n, einheit, onAendern }) {
         <option value="tage">Tage</option>
         <option value="wochen">Wochen</option>
         <option value="monate">Monate</option>
+        ${mitJahren && html`<option value="jahre">Jahre</option>`}
       </select>
     </div>
   `;

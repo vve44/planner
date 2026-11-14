@@ -6,13 +6,17 @@
    vorbehalten. Schrift: Outfit (liegt lokal im Ordner fonts).
    ========================================================================== */
 
-@font-face {
-  font-family: 'Outfit';
-  src: url('../fonts/outfit.woff2') format('woff2');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
+/* Zehn Schriften zur Auswahl (Einstellungen). Alle liegen lokal im Ordner fonts. */
+@font-face { font-family: 'Outfit'; src: url('../fonts/outfit.woff2') format('woff2'); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Manrope'; src: url('../fonts/manrope.woff2') format('woff2'); font-weight: 200 800; font-style: normal; font-display: swap; }
+@font-face { font-family: 'DM Sans'; src: url('../fonts/dm-sans.woff2') format('woff2'); font-weight: 100 1000; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Figtree'; src: url('../fonts/figtree.woff2') format('woff2'); font-weight: 300 900; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Nunito'; src: url('../fonts/nunito.woff2') format('woff2'); font-weight: 200 1000; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Quicksand'; src: url('../fonts/quicksand.woff2') format('woff2'); font-weight: 300 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Josefin Sans'; src: url('../fonts/josefin-sans.woff2') format('woff2'); font-weight: 100 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Montserrat'; src: url('../fonts/montserrat.woff2') format('woff2'); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Jost'; src: url('../fonts/jost.woff2') format('woff2'); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Raleway'; src: url('../fonts/raleway.woff2') format('woff2'); font-weight: 100 900; font-style: normal; font-display: swap; }
 
 /* ---------- Farben und Maße ---------- */
 
@@ -34,13 +38,24 @@
   --gefahr: #a8554c;
   --gefahr-zart: #f6e9e6;
 
-  --schrift: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ersatz: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --schrift: 'Outfit', var(--ersatz);
   --rand: 18px;
   --rund: 16px;
   --rund-klein: 12px;
   --oben-sicher: env(safe-area-inset-top, 0px);
   --unten-sicher: env(safe-area-inset-bottom, 0px);
 }
+
+html[data-schrift='manrope'] { --schrift: 'Manrope', var(--ersatz); }
+html[data-schrift='dm-sans'] { --schrift: 'DM Sans', var(--ersatz); }
+html[data-schrift='figtree'] { --schrift: 'Figtree', var(--ersatz); }
+html[data-schrift='nunito'] { --schrift: 'Nunito', var(--ersatz); }
+html[data-schrift='quicksand'] { --schrift: 'Quicksand', var(--ersatz); }
+html[data-schrift='josefin-sans'] { --schrift: 'Josefin Sans', var(--ersatz); }
+html[data-schrift='montserrat'] { --schrift: 'Montserrat', var(--ersatz); }
+html[data-schrift='jost'] { --schrift: 'Jost', var(--ersatz); }
+html[data-schrift='raleway'] { --schrift: 'Raleway', var(--ersatz); }
 
 /* ---------- Grundlagen ---------- */
 
@@ -57,6 +72,7 @@ body {
   font-size: 16.5px;
   font-weight: 350;
   line-height: 1.45;
+  font-variant-numeric: lining-nums;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
@@ -799,3 +815,281 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
 .routine-zeile.erledigt .routine-name .icon { color: var(--tinte-blass); }
 .abschnitt-kopf .knopf-text { min-height: 32px; font-size: 14.5px; }
 .abschnitt-kopf .kopf-rechts { display: flex; align-items: baseline; gap: 12px; }
+
+/* Schriftauswahl in den Einstellungen */
+.schrift-wahl { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.schrift-karte {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  text-align: left;
+  background: var(--flaeche);
+  border: 1px solid var(--linie);
+  border-radius: var(--rund-klein);
+}
+.schrift-karte.aktiv { border-color: var(--akzent); box-shadow: 0 0 0 1px var(--akzent); }
+.schrift-probe { font-size: 21px; line-height: 1.2; }
+.schrift-name { font-size: 13.5px; color: var(--tinte-leise); }
+
+/* ==========================================================================
+   Kalender (ab Etappe 4)
+   Hier gilt die grün-blaue Farbwelt: #f3f0eb, #e1ece8, #c7dcd4, #a9c9c3,
+   #7ba6a5, #4c6f72. Die Variablen werden nur innerhalb des Kalenders umgestellt.
+   ========================================================================== */
+
+.inhalt.fest { overflow: hidden; }
+
+.kalender {
+  --grund: #f3f0eb;
+  --flaeche: #ffffff;
+  --zart: #e1ece8;
+  --zart-2: #c7dcd4;
+  --zart-3: #a9c9c3;
+  --mittel: #7ba6a5;
+  --akzent: #4c6f72;
+  --akzent-tief: #3d5c5f;
+  --tinte: #22383a;
+  --tinte-leise: #5d7577;
+  --tinte-blass: #9db0af;
+  --linie: #dbe5e1;
+  --stunde: 56px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--grund);
+  color: var(--tinte);
+}
+.kalender .feld:focus { box-shadow: 0 0 0 3px rgba(123, 166, 165, 0.28); }
+.kalender select.feld {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%235d7577' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+.kalender .blatt-hintergrund { background: rgba(34, 56, 58, 0.42); }
+
+.kal-kopf { flex: none; display: flex; flex-direction: column; gap: 8px; padding: 12px var(--rand) 10px; }
+.kal-nav { display: flex; align-items: center; gap: 2px; margin: 0 -8px; }
+.kal-nav h2 { flex: 1; min-width: 0; text-align: center; font-size: 17px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kal-heute {
+  flex: none;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--zart-2);
+  background: var(--flaeche);
+  font-size: 14px;
+  color: var(--akzent);
+}
+.kal-plus {
+  position: absolute;
+  right: 18px;
+  bottom: calc(var(--unten-sicher) + 82px);
+  z-index: 6;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--akzent);
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(34, 56, 58, 0.26);
+}
+.kal-plus:active { background: var(--akzent-tief); }
+
+.kal-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px var(--rand) 96px; display: flex; flex-direction: column; gap: 20px; }
+.kal-scroll > * { flex: none; }
+.kal-abschnitt .abschnitt-kopf h2 { color: var(--tinte-leise); }
+
+/* ---------- Stundenraster ---------- */
+
+.raster-rahmen {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--flaeche);
+  border-top: 1px solid var(--linie);
+}
+.raster { min-width: 100%; }
+.raster-kopf {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  background: var(--flaeche);
+  border-bottom: 1px solid var(--linie);
+}
+.raster-ecke { position: sticky; left: 0; z-index: 5; flex: none; width: 46px; background: var(--flaeche); }
+.tag-kopf {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 4px;
+  border-left: 1px solid var(--linie);
+  transition: background-color 0.12s ease;
+}
+.raster-rahmen:not(.breit) .tag-kopf { flex-direction: row; flex-wrap: wrap; align-items: center; padding: 8px 8px 8px 6px; }
+.tag-kopf.ablage-ziel { background: var(--zart); }
+.tag-kopf-datum { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px; color: var(--tinte-leise); }
+.tag-kopf-datum strong {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 15.5px;
+  font-weight: 500;
+  color: var(--tinte);
+}
+.tag-kopf.heute .tag-kopf-datum strong { background: var(--akzent); color: #fff; }
+
+.ganztag-chip, .ohne-chip {
+  max-width: 100%;
+  min-height: 26px;
+  padding: 2px 8px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  line-height: 1.25;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--tinte);
+}
+.ganztag-chip { border-left: 3px solid var(--mittel); }
+.ohne-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  border: 1px dashed var(--mittel);
+  background: var(--flaeche);
+}
+.ohne-chip .icon { color: var(--mittel); margin-left: -3px; }
+.ohne-chip span { overflow: hidden; text-overflow: ellipsis; }
+.raster-rahmen:not(.breit) .ganztag-chip, .raster-rahmen:not(.breit) .ohne-chip { min-height: 32px; padding: 4px 10px; font-size: 14px; }
+.ohne-mehr { font-size: 12px; color: var(--tinte-blass); padding: 0 2px; }
+
+.raster-koerper { position: relative; display: flex; }
+.stunden { position: sticky; left: 0; z-index: 3; flex: none; width: 46px; background: var(--flaeche); }
+.stunden span {
+  position: absolute;
+  right: 6px;
+  transform: translateY(-50%);
+  font-size: 11.5px;
+  color: var(--tinte-blass);
+  font-variant-numeric: tabular-nums;
+}
+.tag-spalte {
+  position: relative;
+  border-left: 1px solid var(--linie);
+  background-image: linear-gradient(to bottom, var(--linie) 1px, transparent 1px);
+  background-size: 100% var(--stunde);
+}
+.tag-spalte.heute { background-color: rgba(225, 236, 232, 0.35); }
+
+/* Blöcke: Termine in der Farbe ihrer Kategorie, Aufgaben in Jade */
+.block {
+  position: absolute;
+  z-index: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 1.25;
+  text-align: left;
+  color: #22383a;
+}
+.block strong { display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.block span { display: block; font-size: 11.5px; opacity: 0.8; white-space: nowrap; overflow: hidden; }
+.block.termin { display: flex; flex-direction: column; justify-content: flex-start; padding: 3px 6px; border-left: 3px solid var(--mittel); }
+.block.aufgabe { display: flex; align-items: flex-start; background: var(--zart-3); }
+.block.aufgabe.erledigt { background: var(--zart); color: var(--tinte-blass); }
+.block.aufgabe.erledigt strong { text-decoration: line-through; }
+.block-haken { flex: none; width: 26px; height: 22px; display: grid; place-items: center; }
+.block-haken span {
+  width: 15px;
+  height: 15px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1.5px solid #4c6f72;
+  opacity: 1;
+  color: #fff;
+}
+.block-haken[aria-pressed='true'] span { background: var(--gold); border-color: var(--gold); }
+.block-text { flex: 1; min-width: 0; align-self: stretch; display: flex; flex-direction: column; justify-content: flex-start; padding: 3px 6px 3px 0; text-align: left; }
+
+.jetzt-linie { position: absolute; left: 0; right: 0; z-index: 2; height: 2px; margin-top: -1px; background: var(--gold); pointer-events: none; }
+.jetzt-linie::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+/* Drag & Drop */
+[data-zieh-id] { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.wird-gezogen { opacity: 0.35; }
+.zieh-geist {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 50;
+  margin: 0;
+  pointer-events: none;
+  opacity: 0.94;
+  box-shadow: 0 10px 26px rgba(34, 56, 58, 0.3);
+}
+.zieh-geist.ohne-chip { background: #a9c9c3; border-style: solid; border-color: #7ba6a5; color: #22383a; border-radius: 8px; padding: 4px 10px; font-size: 13px; white-space: nowrap; overflow: hidden; }
+.zieh-vorschau {
+  position: absolute;
+  left: 1px;
+  right: 2px;
+  z-index: 2;
+  padding: 2px 6px;
+  border-radius: 8px;
+  border: 2px dashed #4c6f72;
+  background: rgba(76, 111, 114, 0.14);
+  font-size: 12px;
+  font-weight: 500;
+  color: #3d5c5f;
+  pointer-events: none;
+}
+
+/* ---------- Monat ---------- */
+
+.monat { background: var(--flaeche); border: 1px solid var(--linie); border-radius: var(--rund); overflow: hidden; }
+.monat-wochentage { display: grid; grid-template-columns: repeat(7, 1fr); padding: 8px 0 4px; }
+.monat-wochentage span { text-align: center; font-size: 12.5px; color: var(--tinte-blass); }
+.monat-raster { display: grid; grid-template-columns: repeat(7, 1fr); }
+.monat-tag { min-height: 54px; padding: 5px 0 6px; display: flex; flex-direction: column; align-items: center; gap: 4px; border-top: 1px solid var(--linie); }
+.monat-tag .zahl { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; font-size: 15px; }
+.monat-tag.ausserhalb .zahl { color: var(--tinte-blass); }
+.monat-tag.heute .zahl { background: var(--akzent); color: #fff; }
+.monat-tag.gewaehlt .zahl { box-shadow: 0 0 0 2px var(--mittel); }
+.monat-tag.gewaehlt:not(.heute) .zahl { background: var(--zart); }
+.monat-punkte { display: flex; gap: 3px; height: 6px; }
+.monat-punkte i { width: 6px; height: 6px; border-radius: 50%; }
+
+/* ---------- Listen in Monat und Agenda ---------- */
+
+.agenda-zeile { width: 100%; display: flex; align-items: center; gap: 10px; min-height: 54px; padding: 8px 12px; text-align: left; }
+.agenda-zeit { flex: none; width: 74px; font-size: 13.5px; color: var(--tinte-leise); font-variant-numeric: tabular-nums; }
+.agenda-farbe { flex: none; align-self: stretch; width: 4px; border-radius: 2px; }
+.agenda-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.agenda-text strong { font-weight: 400; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.agenda-text span { font-size: 13px; color: var(--tinte-leise); }
+.agenda-art { color: var(--tinte-blass); }
+.agenda-zeile.erledigt strong { color: var(--tinte-blass); text-decoration: line-through; }
+.agenda-zeile.erledigt .agenda-art { color: var(--gold); }
+
+/* ---------- Datum und Uhrzeit nebeneinander ---------- */
+
+.datum-zeit { display: flex; gap: 8px; }
+.datum-zeit .feld { flex: 1; min-width: 0; }
+.feld.zeit, .datum-zeit .feld.zeit { flex: none; width: 118px; text-align: center; }
+input[type='time'].feld::-webkit-date-and-time-value { text-align: center; }
+.zahl-zeile .feld.zeit { width: 118px; }
