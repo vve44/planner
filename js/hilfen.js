@@ -139,5 +139,5 @@ export function farbeDarauf(hex) {
   const g = parseInt(wert.slice(2, 4), 16);
   const b = parseInt(wert.slice(4, 6), 16);
   const helligkeit = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return helligkeit > 0.68 ? '#22383a' : '#ffffff';
+  return helligkeit > 0.68 ? '#3e2b23' : '#ffffff';
 }

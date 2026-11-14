@@ -1,7 +1,9 @@
 /* ==========================================================================
    Planner – Gestaltung
-   Hell, ruhig, viel Luft. Petrol als Leitfarbe, Gold nur für Erledigtes und
-   aktive Zustände. Schrift: Outfit (liegt lokal im Ordner fonts).
+   Hell, ruhig, viel Luft. Die Menüführung nutzt warme Sand- und Brauntöne
+   (#f3eee9, #e0cfc3, #c3a995, #a07e69, #715546, #3e2b23), Gold nur für
+   Erledigtes und aktive Zustände. Die grün-blaue Palette bleibt dem Kalender
+   vorbehalten. Schrift: Outfit (liegt lokal im Ordner fonts).
    ========================================================================== */
 
 @font-face {
@@ -15,20 +17,20 @@
 /* ---------- Farben und Maße ---------- */
 
 :root {
-  --grund: #f5f3ef;        /* Hintergrund */
-  --flaeche: #ffffff;      /* Karten, Listen, Felder */
-  --mint: #e6efeb;
-  --nebel: #cfe0d9;
-  --jade: #a9c9c3;
-  --salbei: #7ba6a5;
-  --petrol: #4c6f72;       /* Leitfarbe */
-  --petrol-tief: #3d5c5f;
-  --tinte: #22383a;        /* Text */
-  --tinte-leise: #647a7b;  /* Nebentext */
-  --tinte-blass: #9db0af;  /* Erledigtes, Platzhalter */
-  --linie: #e7e4dd;
+  --grund: #f3eee9;      /* Hintergrund */
+  --flaeche: #fffdfb;    /* Karten, Listen, Felder */
+  --zart: #ece2d9;       /* ruhige Füllfläche */
+  --zart-2: #e0cfc3;
+  --zart-3: #c3a995;
+  --mittel: #a07e69;
+  --akzent: #715546;     /* Leitfarbe */
+  --akzent-tief: #5a4337;
+  --tinte: #3e2b23;      /* Text */
+  --tinte-leise: #7d6252; /* Nebentext */
+  --tinte-blass: #b7a294; /* Erledigtes, Platzhalter */
+  --linie: #e8ddd3;
   --gold: #b8975a;         /* Highlights */
-  --gold-zart: #f3ecdd;
+  --gold-zart: #f1e6cf;
   --gefahr: #a8554c;
   --gefahr-zart: #f6e9e6;
 
@@ -49,7 +51,7 @@ html { height: 100%; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   height: 100%;
   margin: 0;
-  background: var(--mint);
+  background: var(--zart-2);
   color: var(--tinte);
   font-family: var(--schrift);
   font-size: 16.5px;
@@ -92,7 +94,7 @@ strong { font-weight: 500; }
 .kopf {
   flex: none;
   padding: calc(var(--oben-sicher) + 14px) var(--rand) 16px;
-  background: var(--petrol);
+  background: var(--akzent);
   color: #fff;
 }
 .kopf-zeile { display: flex; align-items: center; gap: 4px; min-height: 44px; }
@@ -155,7 +157,7 @@ strong { font-weight: 500; }
   color: var(--tinte-blass);
   font-size: 12px;
 }
-.tab.aktiv { color: var(--petrol); }
+.tab.aktiv { color: var(--akzent); }
 .tab.aktiv span { font-weight: 500; }
 .tab.aktiv::before {
   content: '';
@@ -183,7 +185,7 @@ strong { font-weight: 500; }
   flex: none;
   padding: 8px 14px;
   border-radius: 999px;
-  background: var(--petrol);
+  background: var(--akzent);
   color: #fff;
   font-weight: 500;
 }
@@ -203,7 +205,7 @@ strong { font-weight: 500; }
   flex: none;
   padding: 2px 9px;
   border-radius: 999px;
-  background: var(--mint);
+  background: var(--zart);
   font-size: 12.5px;
   color: var(--tinte-leise);
   white-space: nowrap;
@@ -229,8 +231,8 @@ strong { font-weight: 500; }
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--mint);
-  color: var(--petrol);
+  background: var(--zart);
+  color: var(--akzent);
 }
 .hinweis-karte.faellig { border-color: var(--gold); }
 .hinweis-karte.faellig .karte-icon { background: var(--gold-zart); color: var(--gold); }
@@ -245,23 +247,23 @@ strong { font-weight: 500; }
   min-height: 48px;
   padding: 10px 20px;
   border-radius: 14px;
-  background: var(--petrol);
+  background: var(--akzent);
   color: #fff;
   font-weight: 450;
   transition: background-color 0.15s ease;
 }
-.knopf:active { background: var(--petrol-tief); }
+.knopf:active { background: var(--akzent-tief); }
 .knopf:disabled { opacity: 0.5; }
 .knopf.breit { width: 100%; }
-.knopf.leise { background: var(--flaeche); color: var(--petrol); border: 1px solid var(--linie); }
-.knopf.leise:active { background: var(--mint); }
+.knopf.leise { background: var(--flaeche); color: var(--akzent); border: 1px solid var(--linie); }
+.knopf.leise:active { background: var(--zart); }
 .knopf.gefahr { background: var(--gefahr); color: #fff; }
 .knopf.gefahr-text { color: var(--gefahr); }
 .knopf-stapel { display: flex; flex-direction: column; gap: 10px; }
 .knopf-reihe { display: flex; gap: 10px; }
 .knopf-reihe .knopf { flex: 1; padding-left: 10px; padding-right: 10px; }
 
-.knopf-text { min-height: 44px; padding: 0 4px; color: var(--petrol); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+.knopf-text { min-height: 44px; padding: 0 4px; color: var(--akzent); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
 
 .knopf-rund {
   flex: none;
@@ -272,7 +274,7 @@ strong { font-weight: 500; }
   border-radius: 50%;
   color: var(--tinte-leise);
 }
-.knopf-rund:active { background: var(--mint); }
+.knopf-rund:active { background: var(--zart); }
 .knopf-rund:disabled { opacity: 0.3; }
 
 /* Runder Plus-Knopf unten rechts */
@@ -286,11 +288,11 @@ strong { font-weight: 500; }
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--petrol);
+  background: var(--akzent);
   color: #fff;
-  box-shadow: 0 8px 22px rgba(34, 56, 58, 0.26);
+  box-shadow: 0 8px 22px rgba(62, 43, 35, 0.26);
 }
-.knopf-plus:active { background: var(--petrol-tief); }
+.knopf-plus:active { background: var(--akzent-tief); }
 
 /* Auswahl aus zwei bis vier Möglichkeiten */
 .wahl {
@@ -300,10 +302,10 @@ strong { font-weight: 500; }
   gap: 3px;
   padding: 3px;
   border-radius: 13px;
-  background: var(--mint);
+  background: var(--zart);
 }
 .wahl button { min-height: 40px; border-radius: 10px; font-size: 15px; color: var(--tinte-leise); }
-.wahl button.aktiv { background: var(--flaeche); color: var(--tinte); font-weight: 500; box-shadow: 0 1px 3px rgba(34, 56, 58, 0.12); }
+.wahl button.aktiv { background: var(--flaeche); color: var(--tinte); font-weight: 500; box-shadow: 0 1px 3px rgba(62, 43, 35, 0.12); }
 
 /* Kleine runde Auswahlknöpfe */
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -318,7 +320,7 @@ strong { font-weight: 500; }
   background: var(--flaeche);
   font-size: 15px;
 }
-.chip.aktiv { background: var(--petrol); border-color: var(--petrol); color: #fff; }
+.chip.aktiv { background: var(--akzent); border-color: var(--akzent); color: #fff; }
 .chips.woche { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .chip.tag { min-width: 0; padding: 0 2px; justify-content: center; }
 
@@ -331,7 +333,7 @@ strong { font-weight: 500; }
   width: 52px;
   height: 32px;
   border-radius: 999px;
-  background: var(--nebel);
+  background: var(--zart-2);
   transition: background-color 0.15s ease;
 }
 .schalter::after {
@@ -343,10 +345,10 @@ strong { font-weight: 500; }
   height: 26px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 1px 3px rgba(34, 56, 58, 0.25);
+  box-shadow: 0 1px 3px rgba(62, 43, 35, 0.25);
   transition: transform 0.15s ease;
 }
-.schalter[aria-checked='true'] { background: var(--petrol); }
+.schalter[aria-checked='true'] { background: var(--akzent); }
 .schalter[aria-checked='true']::after { transform: translateX(20px); }
 
 /* ---------- Listen in Gruppen ---------- */
@@ -374,7 +376,7 @@ strong { font-weight: 500; }
   display: grid;
   place-items: center;
   border-radius: 50%;
-  border: 1.5px solid var(--salbei);
+  border: 1.5px solid var(--mittel);
   color: #fff;
   transition: background-color 0.12s ease, border-color 0.12s ease;
 }
@@ -392,14 +394,14 @@ strong { font-weight: 500; }
   text-align: left;
 }
 .aufgabe-titel { display: flex; align-items: center; gap: 7px; font-size: 16.5px; font-weight: 400; line-height: 1.3; overflow-wrap: anywhere; }
-.aufgabe-titel .icon { color: var(--petrol); }
+.aufgabe-titel .icon { color: var(--akzent); }
 .aufgabe-meta { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 13.5px; color: var(--tinte-leise); }
 .aufgabe-meta > span { display: inline-flex; align-items: center; gap: 4px; }
 .aufgabe-meta .warnung { color: var(--gefahr); }
 .aufgabe-meta .gold { color: var(--gold); }
 .farb-tupfer { flex: none; width: 9px; height: 9px; border-radius: 50%; }
 
-.aufgabe.erledigt .aufgabe-titel { color: var(--tinte-blass); text-decoration: line-through; text-decoration-color: var(--jade); }
+.aufgabe.erledigt .aufgabe-titel { color: var(--tinte-blass); text-decoration: line-through; text-decoration-color: var(--zart-3); }
 .aufgabe.erledigt .aufgabe-titel .icon,
 .aufgabe.erledigt .aufgabe-meta,
 .aufgabe.erledigt .aufgabe-meta .warnung,
@@ -418,12 +420,12 @@ strong { font-weight: 500; }
   font-size: 13.5px;
   color: var(--tinte-leise);
 }
-.aufgabe-neben button:active { background: var(--mint); }
+.aufgabe-neben button:active { background: var(--zart); }
 
 .unterliste { padding: 0 8px 8px 44px; }
 .unterliste li { display: flex; align-items: center; }
 .unterliste span { font-size: 15.5px; overflow-wrap: anywhere; }
-.unterliste li.erledigt span { color: var(--tinte-blass); text-decoration: line-through; text-decoration-color: var(--jade); }
+.unterliste li.erledigt span { color: var(--tinte-blass); text-decoration: line-through; text-decoration-color: var(--zart-3); }
 
 .leer-zeile { padding: 16px; color: var(--tinte-leise); font-size: 15px; }
 
@@ -454,8 +456,8 @@ strong { font-weight: 500; }
   display: grid;
   place-items: center;
   border-radius: 11px;
-  background: var(--mint);
-  color: var(--petrol);
+  background: var(--zart);
+  color: var(--akzent);
 }
 .farb-marke {
   flex: none;
@@ -492,8 +494,8 @@ strong { font-weight: 500; }
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--mint);
-  color: var(--petrol);
+  background: var(--zart);
+  color: var(--akzent);
   margin-bottom: 4px;
 }
 .leer .knopf { margin-top: 8px; }
@@ -507,7 +509,7 @@ strong { font-weight: 500; }
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--jade);
+  background: var(--zart-3);
 }
 
 .spaeter-liste { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -517,7 +519,7 @@ strong { font-weight: 500; }
   gap: 7px;
   padding: 7px 12px;
   border-radius: 999px;
-  border: 1px dashed var(--nebel);
+  border: 1px dashed var(--zart-2);
   font-size: 14px;
   color: var(--tinte-leise);
 }
@@ -537,7 +539,7 @@ strong { font-weight: 500; }
   border: 1px solid var(--linie);
   border-radius: var(--rund);
 }
-button.kachel:active { background: var(--mint); }
+button.kachel:active { background: var(--zart); }
 .kachel strong { font-size: 16.5px; font-weight: 500; margin-top: auto; }
 .kachel-icon {
   width: 40px;
@@ -545,8 +547,8 @@ button.kachel:active { background: var(--mint); }
   display: grid;
   place-items: center;
   border-radius: 12px;
-  background: var(--mint);
-  color: var(--petrol);
+  background: var(--zart);
+  color: var(--akzent);
   margin-bottom: 10px;
 }
 .kachel-zusatz { font-size: 13.5px; color: var(--tinte-leise); }
@@ -574,12 +576,12 @@ button.kachel:active { background: var(--mint); }
   -webkit-appearance: none;
 }
 .feld::placeholder { color: var(--tinte-blass); }
-.feld:focus { outline: none; border-color: var(--petrol); box-shadow: 0 0 0 3px rgba(123, 166, 165, 0.25); }
+.feld:focus { outline: none; border-color: var(--akzent); box-shadow: 0 0 0 3px rgba(160, 126, 105, 0.28); }
 .feld.gross { font-size: 20px; min-height: 56px; }
 textarea.feld { min-height: 96px; resize: vertical; line-height: 1.4; }
 select.feld {
   padding-right: 40px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23647a7b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%237d6252' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
 }
@@ -600,7 +602,7 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
 
 .farb-wahl { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
 .farb-punkt { aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; color: #fff; border: 2px solid transparent; }
-.farb-punkt.aktiv { border-color: var(--grund); box-shadow: 0 0 0 2px var(--petrol); }
+.farb-punkt.aktiv { border-color: var(--grund); box-shadow: 0 0 0 2px var(--akzent); }
 
 /* Icon-Auswahl: wenige Icons, auf Wunsch alle. Kein eigener Scrollbereich. */
 .icon-wahl { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
@@ -613,7 +615,7 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
   background: var(--flaeche);
   color: var(--tinte-leise);
 }
-.icon-punkt.aktiv { background: var(--petrol); border-color: var(--petrol); color: #fff; }
+.icon-punkt.aktiv { background: var(--akzent); border-color: var(--akzent); color: #fff; }
 
 /* Hinweis-Kasten in Formularen */
 .hinweis {
@@ -622,10 +624,10 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
   align-items: flex-start;
   padding: 14px;
   border-radius: var(--rund-klein);
-  background: var(--mint);
+  background: var(--zart);
   font-size: 15px;
 }
-.hinweis .icon { margin-top: 1px; color: var(--petrol); }
+.hinweis .icon { margin-top: 1px; color: var(--akzent); }
 .hinweis.wichtig { background: var(--gold-zart); }
 .hinweis.wichtig .icon { color: #8f7136; }
 
@@ -637,7 +639,7 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
   border: 1px solid var(--linie);
   border-radius: var(--rund-klein);
   background: var(--flaeche);
-  color: var(--petrol);
+  color: var(--akzent);
 }
 .datei-karte div { min-width: 0; display: flex; flex-direction: column; color: var(--tinte); }
 .datei-karte strong { overflow-wrap: anywhere; }
@@ -666,7 +668,7 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
   inset: 0;
   z-index: 20;
   display: flex;
-  background: rgba(34, 56, 58, 0.42);
+  background: rgba(62, 43, 35, 0.42);
 }
 .blatt-hintergrund { align-items: flex-end; }
 .blatt {
@@ -677,7 +679,7 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
   background: var(--grund);
   border-radius: 22px 22px 0 0;
 }
-.blatt-griff { flex: none; width: 38px; height: 4px; margin: 8px auto 0; border-radius: 2px; background: var(--nebel); }
+.blatt-griff { flex: none; width: 38px; height: 4px; margin: 8px auto 0; border-radius: 2px; background: var(--zart-2); }
 .blatt-kopf {
   flex: none;
   display: flex;
@@ -735,9 +737,9 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
   background: var(--tinte);
   color: #fff;
   font-size: 15px;
-  box-shadow: 0 8px 24px rgba(34, 56, 58, 0.28);
+  box-shadow: 0 8px 24px rgba(62, 43, 35, 0.28);
 }
-.meldung button { flex: none; color: #e3d2ad; font-weight: 500; min-height: 32px; }
+.meldung button { flex: none; color: #e6d3a8; font-weight: 500; min-height: 32px; }
 
 /* ---------- Bewegung: nur als Antwort auf eine Handlung ---------- */
 
@@ -752,5 +754,48 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
 /* ---------- Breite Bildschirme (zum Beispiel am Computer) ---------- */
 
 @media (min-width: 600px) {
-  #app { box-shadow: 0 0 60px rgba(34, 56, 58, 0.16); }
+  #app { box-shadow: 0 0 60px rgba(62, 43, 35, 0.16); }
 }
+
+/* ---------- Ergänzungen ab Etappe 3 ---------- */
+
+/* Neuer Punkt in einer Liste: Eingabefeld mit Plus-Knopf */
+.punkt-neu { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; }
+.punkt-neu .feld { flex: 1; min-width: 0; }
+.punkt-plus {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--akzent);
+  color: #fff;
+}
+.punkt-plus:disabled { background: var(--zart-2); }
+.bearbeit-liste .platz { flex: none; width: 40px; }
+
+/* Kleiner Knopf am Ende einer Zeile ("Einplanen") */
+.zeilen-knopf {
+  flex: none;
+  align-self: center;
+  min-height: 36px;
+  margin-right: 8px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--zart-2);
+  background: var(--flaeche);
+  font-size: 14px;
+  font-weight: 450;
+  color: var(--akzent);
+}
+.zeilen-knopf:active { background: var(--zart); }
+
+/* Tagesroutinen: kompakte Zeilen */
+.routine-zeile { display: flex; align-items: center; padding: 0 12px 0 4px; min-height: 48px; }
+.routine-zeile .routine-name { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; font-size: 16.5px; overflow-wrap: anywhere; }
+.routine-zeile .routine-name .icon { color: var(--mittel); }
+.routine-zeile.erledigt .routine-name { color: var(--tinte-blass); text-decoration: line-through; text-decoration-color: var(--zart-3); }
+.routine-zeile.erledigt .routine-name .icon { color: var(--tinte-blass); }
+.abschnitt-kopf .knopf-text { min-height: 32px; font-size: 14.5px; }
+.abschnitt-kopf .kopf-rechts { display: flex; align-items: baseline; gap: 12px; }

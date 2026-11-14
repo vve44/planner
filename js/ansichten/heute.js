@@ -1,19 +1,22 @@
-// Tagesbereich: Hinweise zu Installation und Backup, Überfälliges und die Aufgaben für heute.
-// Tagesroutinen, Vorschläge, Habits und Zyklusphase kommen mit späteren Etappen dazu.
+// Tagesbereich: der Stand des heutigen Tages.
+// Von oben nach unten: Tagesroutinen, Überfälliges, Aufgaben für heute, Vorschläge aus den Pools.
+// Habits und Zyklusphase kommen mit späteren Etappen dazu.
 
 import { html } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
+import { melde } from '../bausteine/fenster.js';
 import { AufgabenGruppe } from '../bausteine/aufgabe-zeile.js';
 import { oeffneAufgabe } from '../bausteine/aufgabe-blatt.js';
 import { oeffneBackup } from '../bausteine/backup-dialoge.js';
-import { useDaten } from '../haken.js';
+import { useDaten, geheZu } from '../haken.js';
 import { backupStatus } from '../backup.js';
+import * as store from '../store.js';
 import * as aufgaben from '../aufgaben.js';
-import { heute, istInstalliert, vorTagen } from '../hilfen.js';
+import * as tagesroutinen from '../tagesroutinen.js';
+import * as pools from '../pools.js';
+import { heute, istInstalliert, vorTagen, tagLesbar, dauerLesbar } from '../hilfen.js';
 
 const SPAETER = [
-  { icon: 'sun', name: 'Tagesroutinen', etappe: 3 },
-  { icon: 'sparkles', name: 'Vorschläge', etappe: 3 },
   { icon: 'flame', name: 'Habits', etappe: 5 },
   { icon: 'droplet', name: 'Zyklusphase', etappe: 7 },
 ];
@@ -32,9 +35,13 @@ export function Heute() {
       ${!istInstalliert() && html`<${InstallHinweis} />`}
       <${BackupKarte} status=${status} />
 
+      <${Tagesroutinen} tag=${tag} />
+
       <${AufgabenGruppe} titel="Überfällig" liste=${ueberfaellig} warnung=${true} zeigeDatum=${true} mitMorgen=${true} />
       <${AufgabenGruppe} titel="Aufgaben für heute" liste=${[...offen, ...geschafft]} mitMorgen=${true}
         leerText="Für heute ist nichts geplant. Mit dem Plus legst du eine Aufgabe an." />
+
+      <${Vorschlaege} tag=${tag} />
 
       <section class="abschnitt">
         <h2>Kommt noch dazu</h2>
@@ -50,6 +57,123 @@ export function Heute() {
         <${Icon} name="plus" groesse=${26} />
       </button>
     </div>
+  `;
+}
+
+// ---------- Tagesroutinen: täglich einzeln abhaken, ohne Streak ----------
+
+function Tagesroutinen({ tag }) {
+  const liste = tagesroutinen.alle();
+  const erledigt = tagesroutinen.erledigteAm(tag);
+  const geschafft = liste.filter((r) => erledigt.has(r.id)).length;
+
+  return html`
+    <section class="abschnitt">
+      <div class="abschnitt-kopf">
+        <h2>Tagesroutinen</h2>
+        <span class="kopf-rechts">
+          ${liste.length > 0 && html`<span>${geschafft}/${liste.length}</span>`}
+          <button class="knopf-text" type="button" onClick=${() => geheZu('tagesroutinen')}>
+            ${liste.length ? 'Bearbeiten' : 'Einrichten'}
+          </button>
+        </span>
+      </div>
+      ${liste.length ? html`
+        <ul class="gruppe">
+          ${liste.map((r) => {
+            const fertig = erledigt.has(r.id);
+            return html`
+              <li key=${r.id} class=${`routine-zeile ${fertig ? 'erledigt' : ''}`}>
+                <button class="haken" type="button" aria-pressed=${fertig}
+                  aria-label=${fertig ? `${r.titel} wieder öffnen` : `${r.titel} abhaken`}
+                  onClick=${() => tagesroutinen.schalte(r.id, tag)}>
+                  <span class="haken-kreis">${fertig && html`<${Icon} name="check" groesse=${15} strich=${2.6} />`}</span>
+                </button>
+                <span class="routine-name">
+                  ${r.icon && html`<${Icon} name=${r.icon} groesse=${18} />`}
+                  ${r.titel}
+                </span>
+              </li>
+            `;
+          })}
+        </ul>
+      ` : html`
+        <div class="gruppe">
+          <p class="leer-zeile">Feste Punkte, die du jeden Tag abhakst, zum Beispiel „Vitamine nehmen“. Ohne Streak.</p>
+        </div>
+      `}
+    </section>
+  `;
+}
+
+// ---------- Vorschläge: was laut Putzplan und anderen Pools ansteht ----------
+
+function Vorschlaege({ tag }) {
+  const liste = pools.vorschlaege(tag);
+  const gibtPools = pools.pools().length > 0;
+
+  const erledigt = (eintrag) => {
+    const vorher = pools.markiereErledigt(eintrag.id, tag);
+    const danach = store.hole(eintrag.id);
+    melde(`„${eintrag.titel}“ erledigt, wieder dran: ${tagLesbar(danach.naechsteFaelligkeit)}`, {
+      aktion: 'Rückgängig',
+      beiAktion: () => pools.setzeZurueck(eintrag.id, vorher),
+    });
+  };
+
+  const einplanen = (eintrag) => {
+    const zurueck = aufgaben.ausPoolEintrag(eintrag.id);
+    melde(`„${eintrag.titel}“ für heute eingeplant`, { aktion: 'Rückgängig', beiAktion: zurueck });
+  };
+
+  return html`
+    <section class="abschnitt">
+      <div class="abschnitt-kopf">
+        <h2>Vorschläge</h2>
+        <span class="kopf-rechts">
+          ${liste.length > 0 && html`<span>${liste.length}</span>`}
+          <button class="knopf-text" type="button" onClick=${() => geheZu('pools')}>${gibtPools ? 'Pools' : 'Einrichten'}</button>
+        </span>
+      </div>
+      ${liste.length ? html`
+        <ul class="gruppe">
+          ${liste.map((e) => {
+            const pool = pools.poolVon(e);
+            const zuSpaet = e.naechsteFaelligkeit < tag;
+            return html`
+              <li class="aufgabe" key=${e.id}>
+                <div class="aufgabe-zeile">
+                  <button class="haken" type="button" aria-pressed="false" aria-label=${`${e.titel} als erledigt abhaken`} onClick=${() => erledigt(e)}>
+                    <span class="haken-kreis"></span>
+                  </button>
+                  <div class="aufgabe-haupt">
+                    <span class="aufgabe-titel">${e.titel}</span>
+                    <span class="aufgabe-meta">
+                      <span><${Icon} name=${pool.icon || 'repeat'} groesse=${14} /> ${pool.name}</span>
+                      <span class=${zuSpaet ? 'warnung' : ''}>
+                        <${Icon} name="calendar" groesse=${14} /> ${zuSpaet ? 'War dran:' : 'Dran:'} ${tagLesbar(e.naechsteFaelligkeit)}
+                      </span>
+                      ${e.dauerMin && html`<span><${Icon} name="timer" groesse=${14} /> ${dauerLesbar(e.dauerMin)}</span>`}
+                    </span>
+                  </div>
+                  <button class="zeilen-knopf" type="button" aria-label=${`${e.titel} für heute einplanen`} onClick=${() => einplanen(e)}>
+                    Einplanen
+                  </button>
+                </div>
+              </li>
+            `;
+          })}
+        </ul>
+      ` : html`
+        <div class="gruppe">
+          <p class="leer-zeile">
+            ${gibtPools
+              ? 'Gerade steht nichts an.'
+              : 'Ein Aufgabenpool wie der Putzplan schlägt dir hier vor, was wieder dran ist.'}
+          </p>
+        </div>
+      `}
+    </section>
   `;
 }
 

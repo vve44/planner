@@ -4,6 +4,7 @@ import { html, useState } from '../../bibliothek/preact-htm.js';
 import { Icon } from './icon.js';
 import { melde } from './fenster.js';
 import { oeffneAufgabe } from './aufgabe-blatt.js';
+import * as store from '../store.js';
 import * as aufgaben from '../aufgaben.js';
 import { beschreibeRegel } from '../regeln.js';
 import { tagLesbar, dauerLesbar } from '../hilfen.js';
@@ -22,7 +23,9 @@ export function AufgabeZeile({ aufgabe, zeigeDatum = false, zeigeListe = true, m
   const ueberfaellig = aufgaben.istUeberfaellig(aufgabe);
   const lage = aufgaben.deadlineLage(aufgabe);
   const hatNotiz = Boolean(aufgabe.notiz) || aufgabe.checkliste.length > 0;
-  const herkunft = projekt && !projekt.istMerkliste ? projekt.name : kategorie ? kategorie.name : null;
+  const eintrag = aufgabe.poolEintragId ? store.hole(aufgabe.poolEintragId) : null;
+  const pool = eintrag ? store.hole(eintrag.poolId) : null;
+  const herkunft = projekt && !projekt.istMerkliste ? projekt.name : pool && !pool.geloeschtAm ? pool.name : kategorie ? kategorie.name : null;
 
   const aufMorgen = () => {
     const zurueck = aufgaben.verschiebeAufMorgen(aufgabe.id);

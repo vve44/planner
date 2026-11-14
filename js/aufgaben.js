@@ -4,6 +4,7 @@
 import * as store from './store.js';
 import { neueId, jetztIso, heute, plusTage, tageZwischen, datumLokal } from './hilfen.js';
 import { naechstesPlandatum } from './regeln.js';
+import * as pools from './pools.js';
 
 // ---------- Listen und Projekte ----------
 
@@ -98,6 +99,9 @@ export function leereAufgabe(vorgaben = {}) {
     erledigtAm: null,
     serieId: null,       // gehört zu einer Wiederholung
     vorgaengerId: null,  // aus welcher Aufgabe der Wiederholung sie entstanden ist
+    routineId: null,     // aus welcher Routine sie übernommen wurde
+    poolEintragId: null, // aus welchem Pool-Eintrag (Vorschlag) sie entstanden ist
+    poolVorher: null,    // Stand des Pool-Eintrags vor dem Abhaken (zum Zurücknehmen)
     ...vorgaben,
   };
 }
@@ -162,7 +166,10 @@ function offeneNachfolger(id) {
 export function erledige(id) {
   const aufgabe = store.hole(id);
   if (!aufgabe || aufgabe.erledigtAm) return;
-  store.aendern(id, { erledigtAm: jetztIso() });
+  // Stammt die Aufgabe aus einem Pool, gilt damit auch der Pool-Eintrag als erledigt.
+  const eintrag = aufgabe.poolEintragId ? store.hole(aufgabe.poolEintragId) : null;
+  const poolVorher = eintrag && !eintrag.geloeschtAm ? pools.markiereErledigt(eintrag.id) : null;
+  store.aendern(id, { erledigtAm: jetztIso(), poolVorher });
   const serie = serieVon(aufgabe);
   // Es gibt immer nur eine offene Aufgabe je Wiederholung: Unerledigtes stapelt sich nicht.
   if (serie && !offeneNachfolger(id).length) erzeugeNachfolger(aufgabe, serie);
@@ -174,7 +181,8 @@ export function oeffneWieder(id) {
   // Die schon erzeugte nächste Aufgabe der Wiederholung wird wieder entfernt.
   const nachfolger = offeneNachfolger(id);
   if (nachfolger.length) store.entfernen(nachfolger.map((a) => a.id));
-  store.aendern(id, { erledigtAm: null });
+  if (aufgabe.poolEintragId && aufgabe.poolVorher) pools.setzeZurueck(aufgabe.poolEintragId, aufgabe.poolVorher);
+  store.aendern(id, { erledigtAm: null, poolVorher: null });
 }
 
 export function schalteErledigt(id) {
@@ -190,6 +198,23 @@ export function schalteUnteraufgabe(id, unterId) {
   store.aendern(id, {
     unteraufgaben: aufgabe.unteraufgaben.map((u) => (u.id === unterId ? { ...u, erledigt: !u.erledigt } : u)),
   });
+}
+
+// ---------- Vorschläge aus Pools ----------
+
+// Übernimmt einen Vorschlag als Aufgabe für heute. Gibt eine Funktion zum Rückgängigmachen zurück.
+export function ausPoolEintrag(eintragId) {
+  const eintrag = store.hole(eintragId);
+  if (!eintrag) return () => {};
+  const pool = pools.poolVon(eintrag);
+  const aufgabe = neueAufgabe({
+    titel: eintrag.titel,
+    dauerMin: eintrag.dauerMin || null,
+    plandatum: heute(),
+    kategorieId: pool ? pool.kategorieId : null,
+    poolEintragId: eintrag.id,
+  }, null);
+  return () => store.entfernen(aufgabe.id);
 }
 
 // ---------- Verschieben ----------

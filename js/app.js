@@ -14,19 +14,28 @@ import { Heute } from './ansichten/heute.js';
 import { Kalender } from './ansichten/platzhalter.js';
 import { Aufgaben, Liste, Merkliste } from './ansichten/aufgaben.js';
 import { Uebersicht } from './ansichten/uebersicht.js';
+import { Tagesroutinen } from './ansichten/tagesroutinen.js';
+import { Routinen } from './ansichten/routinen.js';
+import { Pools, Pool } from './ansichten/pools.js';
 import { Kategorien } from './ansichten/kategorien.js';
 import { Papierkorb } from './ansichten/papierkorb.js';
 import { Einstellungen } from './ansichten/einstellungen.js';
 
-// Alle Seiten der App. "tab" sagt, welcher Punkt der unteren Leiste leuchtet,
-// "zurueck" gibt Unterseiten einen Zurück-Pfeil.
+// Alle Seiten der App.
+//   tab      – welcher Punkt der unteren Leiste leuchtet
+//   zurueck  – wohin der Zurück-Pfeil führt. 'herkunft' heißt: zu dem Hauptbereich,
+//              von dem aus die Seite geöffnet wurde (manche Seiten sind von mehreren aus erreichbar).
 const SEITEN = {
   heute: { titel: 'Heute', ansicht: Heute, tab: 'heute' },
   kalender: { titel: 'Kalender', ansicht: Kalender, tab: 'kalender' },
   aufgaben: { titel: 'Aufgaben', ansicht: Aufgaben, tab: 'aufgaben' },
   uebersicht: { titel: 'Übersicht', ansicht: Uebersicht, tab: 'uebersicht' },
   liste: { titel: 'Liste', ansicht: Liste, tab: 'aufgaben', zurueck: 'aufgaben' },
-  merkliste: { titel: 'Merkliste', ansicht: Merkliste, tab: 'uebersicht', zurueck: 'uebersicht' },
+  merkliste: { titel: 'Merkliste', ansicht: Merkliste, tab: 'uebersicht', zurueck: 'herkunft' },
+  tagesroutinen: { titel: 'Tagesroutinen', ansicht: Tagesroutinen, tab: 'uebersicht', zurueck: 'herkunft' },
+  routinen: { titel: 'Routinen', ansicht: Routinen, tab: 'uebersicht', zurueck: 'uebersicht' },
+  pools: { titel: 'Aufgabenpools', ansicht: Pools, tab: 'uebersicht', zurueck: 'herkunft' },
+  pool: { titel: 'Pool', ansicht: Pool, tab: 'uebersicht', zurueck: 'pools' },
   kategorien: { titel: 'Kategorien', ansicht: Kategorien, tab: 'uebersicht', zurueck: 'uebersicht' },
   papierkorb: { titel: 'Papierkorb', ansicht: Papierkorb, tab: 'uebersicht', zurueck: 'uebersicht' },
   einstellungen: { titel: 'Einstellungen', ansicht: Einstellungen, tab: 'uebersicht', zurueck: 'uebersicht' },
@@ -39,8 +48,7 @@ const TABS = [
   { route: 'uebersicht', name: 'Übersicht', icon: 'layout-grid' },
 ];
 
-// Von welchem Hauptbereich aus eine Unterseite geöffnet wurde (für die Merkliste,
-// die sowohl über "Aufgaben" als auch über die "Übersicht" erreichbar ist).
+// Der Hauptbereich, der zuletzt offen war.
 let letzterHauptbereich = 'heute';
 
 function App() {
@@ -54,15 +62,18 @@ function App() {
 
   let tab = seite.tab;
   let zurueck = seite.zurueck;
-  if (route.name === 'merkliste' && letzterHauptbereich === 'aufgaben') {
-    tab = 'aufgaben';
-    zurueck = 'aufgaben';
+  if (zurueck === 'herkunft') {
+    zurueck = letzterHauptbereich === 'kalender' ? 'uebersicht' : letzterHauptbereich;
+    tab = zurueck;
+  } else if (route.name === 'pool') {
+    // Ein einzelner Pool leuchtet unter dem Bereich, aus dem die Pool-Liste geöffnet wurde.
+    tab = letzterHauptbereich === 'kalender' ? 'uebersicht' : letzterHauptbereich;
   }
 
   let titel = seite.titel;
-  if (route.name === 'liste') {
-    const projekt = route.teil ? store.hole(route.teil) : null;
-    if (projekt && projekt.typ === 'projekt') titel = projekt.name;
+  if (route.name === 'liste' || route.name === 'pool') {
+    const eintrag = route.teil ? store.hole(route.teil) : null;
+    if (eintrag && eintrag.name) titel = eintrag.name;
   }
 
   // Beim Seitenwechsel nach oben springen.

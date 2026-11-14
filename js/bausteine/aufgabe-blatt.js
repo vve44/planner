@@ -6,11 +6,13 @@ import { html, useState, useEffect, useRef } from '../../bibliothek/preact-htm.j
 import { Blatt, melde, waehle } from './fenster.js';
 import { Icon } from './icon.js';
 import { IconWahl } from './icon-wahl.js';
+import { PunktListe, DauerWahl, AbstandWahl } from './felder.js';
 import * as store from '../store.js';
 import * as aufgaben from '../aufgaben.js';
+import * as routinen from '../routinen.js';
 import { standardRegel, regelGueltig } from '../regeln.js';
-import { heute, plusTage, dauerLesbar } from '../hilfen.js';
-import { PRIORITAETEN, WOCHENTAGE, DAUER_VORSCHLAEGE } from '../typen.js';
+import { heute, plusTage } from '../hilfen.js';
+import { PRIORITAETEN, WOCHENTAGE } from '../typen.js';
 
 let setzeOffen = null;
 
@@ -33,45 +35,6 @@ export function AufgabenFenster() {
   }, []);
   if (!offen) return null;
   return html`<${AufgabeBlatt} key=${offen.schluessel} id=${offen.id} vorgaben=${offen.vorgaben} onSchliessen=${() => setOffen(null)} />`;
-}
-
-// ---------- Liste zum Bearbeiten (Unteraufgaben, Checkliste) ----------
-
-// "entwurf" ist der Text im Eingabefeld, der noch nicht hinzugefügt wurde. Er liegt
-// beim Fenster, damit er beim Speichern nicht verloren geht.
-function PunktListe({ punkte, onAendern, entwurf, onEntwurf, platzhalter }) {
-  const hinzu = () => {
-    const text = entwurf.trim();
-    if (!text) return;
-    onAendern([...punkte, aufgaben.neuerPunkt(text)]);
-    onEntwurf('');
-  };
-
-  return html`
-    <ul class="bearbeit-liste">
-      ${punkte.map((p) => html`
-        <li key=${p.id} class=${p.erledigt ? 'erledigt' : ''}>
-          <button class="haken klein" type="button" aria-pressed=${p.erledigt}
-            aria-label=${p.erledigt ? 'Wieder öffnen' : 'Abhaken'}
-            onClick=${() => onAendern(punkte.map((x) => (x.id === p.id ? { ...x, erledigt: !x.erledigt } : x)))}>
-            <span class="haken-kreis">${p.erledigt && html`<${Icon} name="check" groesse=${13} strich=${2.6} />`}</span>
-          </button>
-          <input class="feld" type="text" value=${p.text} aria-label="Text"
-            onInput=${(e) => onAendern(punkte.map((x) => (x.id === p.id ? { ...x, text: e.target.value } : x)))} />
-          <button class="knopf-rund" type="button" aria-label=${`„${p.text}“ entfernen`}
-            onClick=${() => onAendern(punkte.filter((x) => x.id !== p.id))}>
-            <${Icon} name="x" groesse=${18} />
-          </button>
-        </li>
-      `)}
-      <li>
-        <span class="haken klein" aria-hidden="true"><${Icon} name="plus" groesse=${18} /></span>
-        <input class="feld" type="text" value=${entwurf} placeholder=${platzhalter} enterkeyhint="done"
-          onInput=${(e) => onEntwurf(e.target.value)}
-          onKeyDown=${(e) => { if (e.key === 'Enter') { e.preventDefault(); hinzu(); } }} />
-      </li>
-    </ul>
-  `;
 }
 
 // ---------- Wiederholungsregel ----------
@@ -103,18 +66,7 @@ function RegelEditor({ regel, modus, onRegel, onModus }) {
       `}
 
       ${regel.art === 'intervall' && html`
-        <div class="zahl-zeile">
-          <span>Alle</span>
-          <input class="feld" type="number" inputmode="numeric" min="1" max="365" aria-label="Abstand"
-            value=${regel.n}
-            onInput=${(e) => onRegel({ ...regel, n: parseInt(e.target.value, 10) || 0 })} />
-          <select class="feld" aria-label="Einheit" value=${regel.einheit}
-            onChange=${(e) => onRegel({ ...regel, einheit: e.target.value })}>
-            <option value="tage">Tage</option>
-            <option value="wochen">Wochen</option>
-            <option value="monate">Monate</option>
-          </select>
-        </div>
+        <${AbstandWahl} n=${regel.n} einheit=${regel.einheit} onAendern=${(a) => onRegel({ ...regel, ...a })} />
       `}
 
       <div class="feld-gruppe">
@@ -155,31 +107,42 @@ function AufgabeBlatt({ id, vorgaben, onSchliessen }) {
     notiz: start.notiz,
     checkliste: start.checkliste,
     unteraufgaben: start.unteraufgaben,
+    routineId: start.routineId || null,
+    poolEintragId: start.poolEintragId || null,
   }));
   const setze = (teil) => { setF((alt) => ({ ...alt, ...teil })); setFehler(''); };
 
   const [wiederholt, setWiederholt] = useState(Boolean(serie));
   const [regel, setRegel] = useState(() => (serie ? { ...standardRegel(start.plandatum), ...serie.regel } : standardRegel(start.plandatum)));
   const [modus, setModus] = useState(serie ? serie.modus : 'fest');
-  const [andereDauer, setAndereDauer] = useState(Boolean(start.dauerMin) && !DAUER_VORSCHLAEGE.includes(start.dauerMin));
   const [mehr, setMehr] = useState(Boolean(vorhanden) && Boolean(
     start.deadline || start.prioritaet || start.kategorieId || start.projektId || start.icon || start.notiz || start.checkliste.length
   ));
   const [fehler, setFehler] = useState('');
   const [unterEntwurf, setUnterEntwurf] = useState('');
   const [checkEntwurf, setCheckEntwurf] = useState('');
+  // Die Dauer-Auswahl wird neu aufgebaut, wenn eine Routine übernommen wird.
+  const [dauerSchluessel, setDauerSchluessel] = useState(0);
   const titelFeld = useRef(null);
 
   useEffect(() => {
-    if (!vorhanden && titelFeld.current) titelFeld.current.focus();
+    if (!vorhanden && !start.titel && titelFeld.current) titelFeld.current.focus();
   }, []);
 
   const morgen = plusTage(heute(), 1);
   const kategorien = store.liste('kategorie').sort((a, b) => a.reihenfolge - b.reihenfolge);
   const merkliste = aufgaben.merkliste();
   const listen = aufgaben.projekte();
+  const vorlagen = vorhanden ? [] : routinen.alle();
   const gewaehlteListe = f.projektId ? store.hole(f.projektId) : null;
   const listenKategorie = gewaehlteListe && gewaehlteListe.kategorieId ? store.hole(gewaehlteListe.kategorieId) : null;
+
+  const uebernimmRoutine = (routineId) => {
+    const routine = routineId ? store.hole(routineId) : null;
+    if (!routine) return;
+    setze(routinen.vorgabenAus(routine));
+    setDauerSchluessel((n) => n + 1);
+  };
 
   const speichern = (e) => {
     if (e) e.preventDefault();
@@ -246,11 +209,21 @@ function AufgabeBlatt({ id, vorgaben, onSchliessen }) {
 
   return html`
     <${Blatt} titel=${vorhanden ? 'Aufgabe' : 'Neue Aufgabe'} onSchliessen=${onSchliessen} fuss=${fuss}>
-      <form class="formular" onSubmit=${speichern}>
-        <input ref=${titelFeld} class="feld gross" type="text" maxlength="200" enterkeyhint="done"
-          aria-label="Titel" placeholder="Was steht an?" value=${f.titel}
-          onInput=${(e) => setze({ titel: e.target.value })} />
+      <div class="formular">
+        <form onSubmit=${speichern}>
+          <input ref=${titelFeld} class="feld gross" type="text" maxlength="200" enterkeyhint="done"
+            aria-label="Titel" placeholder="Was steht an?" value=${f.titel}
+            onInput=${(e) => setze({ titel: e.target.value })} />
+        </form>
         ${fehler && html`<p class="fehlertext" role="alert">${fehler}</p>`}
+
+        ${vorlagen.length > 0 && html`
+          <select class="feld" aria-label="Routine übernehmen" value=${f.routineId || ''}
+            onChange=${(e) => uebernimmRoutine(e.target.value)}>
+            <option value="">Aus einer Routine übernehmen</option>
+            ${vorlagen.map((r) => html`<option value=${r.id}>${r.titel}</option>`)}
+          </select>
+        `}
 
         <fieldset class="feld-gruppe">
           <legend>Geplant für</legend>
@@ -265,23 +238,7 @@ function AufgabeBlatt({ id, vorgaben, onSchliessen }) {
 
         <fieldset class="feld-gruppe">
           <legend>Dauer</legend>
-          <div class="chips">
-            <button type="button" class=${`chip ${!f.dauerMin && !andereDauer ? 'aktiv' : ''}`}
-              onClick=${() => { setAndereDauer(false); setze({ dauerMin: null }); }}>Keine</button>
-            ${DAUER_VORSCHLAEGE.map((m) => html`
-              <button type="button" class=${`chip ${f.dauerMin === m && !andereDauer ? 'aktiv' : ''}`}
-                onClick=${() => { setAndereDauer(false); setze({ dauerMin: m }); }}>${dauerLesbar(m)}</button>
-            `)}
-            <button type="button" class=${`chip ${andereDauer ? 'aktiv' : ''}`} onClick=${() => setAndereDauer(true)}>Andere</button>
-          </div>
-          ${andereDauer && html`
-            <div class="zahl-zeile">
-              <input class="feld" type="number" inputmode="numeric" min="1" max="1440" aria-label="Dauer in Minuten"
-                value=${f.dauerMin || ''}
-                onInput=${(e) => setze({ dauerMin: Math.min(1440, parseInt(e.target.value, 10) || 0) || null })} />
-              <span>Minuten</span>
-            </div>
-          `}
+          <${DauerWahl} key=${dauerSchluessel} wert=${f.dauerMin} onWahl=${(dauerMin) => setze({ dauerMin })} />
         </fieldset>
 
         <div class="feld-gruppe">
@@ -375,7 +332,7 @@ function AufgabeBlatt({ id, vorgaben, onSchliessen }) {
             </button>
           </div>
         `}
-      </form>
+      </div>
     <//>
   `;
 }

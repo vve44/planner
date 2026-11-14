@@ -7,6 +7,7 @@ export const TYP_NAMEN = {
   projekt: 'Projekte und Listen',
   aufgabe: 'Aufgaben',
   serie: 'Wiederholungen',
+  routine: 'Routinen',
   tagesroutine: 'Tagesroutinen',
   tagesroutineHaken: 'Abgehakte Tagesroutinen',
   pool: 'Aufgabenpools',
@@ -27,6 +28,10 @@ export const TYP_EINZAHL = {
   kategorie: 'Kategorie',
   projekt: 'Projekt oder Liste',
   aufgabe: 'Aufgabe',
+  tagesroutine: 'Tagesroutine',
+  routine: 'Routine',
+  pool: 'Aufgabenpool',
+  poolEintrag: 'Pool-Eintrag',
 };
 
 // Farben für Kategorien: die Töne der Palette plus gedeckte Ergänzungen,
