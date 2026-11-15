@@ -22,6 +22,9 @@ import { Notizen, Notiz } from './ansichten/notizen.js';
 import { Suche } from './ansichten/suche.js';
 import { Ziele, Ziel } from './ansichten/ziele.js';
 import { Zyklus } from './ansichten/zyklus.js';
+import { Garten } from './ansichten/garten.js';
+import * as punkte from './punkte.js';
+import { VOLL_AB_LEVEL } from './garten-bild.js';
 import * as notizen from './notizen.js';
 import * as kanban from './kanban.js';
 import * as habits from './habits.js';
@@ -53,6 +56,7 @@ const SEITEN = {
   ziele: { titel: 'Ziele', ansicht: Ziele, tab: 'uebersicht', zurueck: 'herkunft' },
   ziel: { titel: 'Ziel', ansicht: Ziel, tab: 'uebersicht', zurueck: 'ziele' },
   zyklus: { titel: 'Zyklus', ansicht: Zyklus, tab: 'uebersicht', zurueck: 'herkunft' },
+  garten: { titel: 'Garten', ansicht: Garten, tab: 'uebersicht', zurueck: 'herkunft' },
   kategorien: { titel: 'Kategorien', ansicht: Kategorien, tab: 'uebersicht', zurueck: 'uebersicht' },
   papierkorb: { titel: 'Papierkorb', ansicht: Papierkorb, tab: 'uebersicht', zurueck: 'uebersicht' },
   einstellungen: { titel: 'Einstellungen', ansicht: Einstellungen, tab: 'uebersicht', zurueck: 'uebersicht' },
@@ -190,6 +194,15 @@ async function starte() {
   aufgaben.sicherstelleMerkliste();
   habits.raeumeAuf();
   notizen.raeumeAuf();
+  // EP und Level: einmal abgleichen (zählt auch rückwirkend), danach bei jeder Änderung.
+  punkte.beiAufstieg((level) => {
+    melde(`Level ${level} erreicht. ${level <= VOLL_AB_LEVEL ? 'In deinem Garten ist etwas gewachsen.' : ''}`.trim(), {
+      aktion: 'Ansehen',
+      beiAktion: () => geheZu('garten'),
+      dauer: 7000,
+    });
+  });
+  punkte.starte();
   document.documentElement.dataset.schrift = gewaehlteSchrift();
   richteBildschirmEin();
 

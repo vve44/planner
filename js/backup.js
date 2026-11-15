@@ -16,7 +16,7 @@ export const ERINNERUNG_TAGE = 7;
 export const PASSWORT_MINDESTLAENGE = 8;
 
 // Einstellungen, die mit ins Backup wandern (der Schlüssel gehört nicht dazu).
-const EINSTELLUNGEN_IM_BACKUP = ['schrift', 'kalender.ansicht', 'kalender.wocheBreit', 'pin', 'zyklus.laenge', 'zyklus.texte', 'zyklus.imTagesbereich'];
+const EINSTELLUNGEN_IM_BACKUP = ['schrift', 'kalender.ansicht', 'kalender.wocheBreit', 'pin', 'zyklus.laenge', 'zyklus.texte', 'zyklus.imTagesbereich', 'level.erreicht'];
 
 const kodierer = new TextEncoder();
 const dekodierer = new TextDecoder();
@@ -258,6 +258,9 @@ export async function entschluesseleBackup(umschlag, passwort) {
 
 // Ersetzt alle Daten der App durch den Inhalt des Backups.
 export async function stelleWiederHer(entschluesselt) {
+  // Das höchste Level gehört zum alten Bestand. Es wird aus dem Backup übernommen
+  // oder, bei älteren Backups, aus den wiederhergestellten Daten neu bestimmt.
+  await store.setzeEinstellung('level.erreicht', null);
   await store.ersetzeBestand(entschluesselt.datensaetze);
   for (const name of EINSTELLUNGEN_IM_BACKUP) {
     if (entschluesselt.einstellungen[name] !== undefined) {

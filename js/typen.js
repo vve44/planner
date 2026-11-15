@@ -20,7 +20,7 @@ export const TYP_NAMEN = {
   messwert: 'Messwerte',
   periode: 'Zyklus-Einträge',
   ziel: 'Ziele',
-  punkteEreignis: 'Punkte',
+  punkteEreignis: 'EP-Einträge',
 };
 
 // Einzahl, für einzelne Einträge im Papierkorb.

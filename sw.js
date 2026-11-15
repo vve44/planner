@@ -4,7 +4,7 @@
 
 // Bei jeder neuen Etappe wird diese Versionsnummer erhöht. Daran erkennt das
 // Handy, dass es neue Dateien gibt.
-const VERSION = 'planner-8.0.1';
+const VERSION = 'planner-9.1.0';
 
 // Alle Dateien der App. Die Liste wird beim Zusammenstellen automatisch gefüllt.
 /* DATEIEN-ANFANG */
@@ -23,6 +23,7 @@ const DATEIEN = [
   'js/aktualisierung.js',
   'js/ansichten/aufgaben.js',
   'js/ansichten/einstellungen.js',
+  'js/ansichten/garten.js',
   'js/ansichten/habits.js',
   'js/ansichten/heute.js',
   'js/ansichten/kalender.js',
@@ -56,6 +57,7 @@ const DATEIEN = [
   'js/bausteine/termin-blatt.js',
   'js/bildschirm.js',
   'js/db.js',
+  'js/garten-bild.js',
   'js/habits.js',
   'js/haken.js',
   'js/hilfen.js',
@@ -64,6 +66,7 @@ const DATEIEN = [
   'js/notizen.js',
   'js/pin.js',
   'js/pools.js',
+  'js/punkte.js',
   'js/regeln.js',
   'js/routinen.js',
   'js/store.js',

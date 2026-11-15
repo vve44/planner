@@ -1,6 +1,6 @@
 // Tagesbereich: der Stand des heutigen Tages.
-// Von oben nach unten: Termine, Tagesroutinen, Zyklusphase, Habits, Überfälliges,
-// Aufgaben für heute, Vorschläge aus den Pools.
+// Von oben nach unten: Level, Termine (nur wenn es welche gibt), Habits, Tagesroutinen,
+// Überfälliges, Aufgaben für heute, Vorschläge aus den Pools, Zyklusphase.
 
 import { html, useState } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
@@ -19,6 +19,7 @@ import * as habits from '../habits.js';
 import { TerminBlatt } from '../bausteine/termin-blatt.js';
 import { HabitZeile } from '../bausteine/habit-teile.js';
 import { ZyklusHeute } from './zyklus.js';
+import { LevelZeile } from './garten.js';
 import { heute, istInstalliert, vorTagen, tagLesbar, dauerLesbar, jetztMin } from '../hilfen.js';
 
 const TERMIN_FARBE = '#7ba6a5';
@@ -37,16 +38,17 @@ export function Heute() {
       ${!istInstalliert() && html`<${InstallHinweis} />`}
       <${BackupKarte} status=${status} />
 
+      <${LevelZeile} />
       <${TermineHeute} tag=${tag} />
-      <${Tagesroutinen} tag=${tag} />
-      <${ZyklusHeute} tag=${tag} />
       <${HabitsHeute} tag=${tag} />
+      <${Tagesroutinen} tag=${tag} />
 
       <${AufgabenGruppe} titel="Überfällig" liste=${ueberfaellig} warnung=${true} zeigeDatum=${true} mitMorgen=${true} />
       <${AufgabenGruppe} titel="Aufgaben für heute" liste=${[...offen, ...geschafft]} mitMorgen=${true}
         leerText="Für heute ist nichts geplant. Mit dem Plus legst du eine Aufgabe an." />
 
       <${Vorschlaege} tag=${tag} />
+      <${ZyklusHeute} tag=${tag} />
 
       <button class="knopf-plus" type="button" aria-label="Aufgabe für heute anlegen"
         onClick=${() => oeffneAufgabe({ vorgaben: { plandatum: tag } })}>

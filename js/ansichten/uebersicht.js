@@ -5,6 +5,7 @@ import { Icon } from '../bausteine/icon.js';
 import { useDaten, geheZu } from '../haken.js';
 import * as store from '../store.js';
 import * as aufgaben from '../aufgaben.js';
+import * as punkte from '../punkte.js';
 import { TYP_EINZAHL } from '../typen.js';
 
 const KACHELN = [
@@ -17,7 +18,7 @@ const KACHELN = [
   { icon: 'notebook-pen', name: 'Notizen', route: 'notizen' },
   { icon: 'target', name: 'Ziele', route: 'ziele' },
   { icon: 'droplet', name: 'Zyklus', route: 'zyklus' },
-  { icon: 'sprout', name: 'Garten', etappe: 9 },
+  { icon: 'sprout', name: 'Garten', route: 'garten' },
   { icon: 'search', name: 'Suche', route: 'suche' },
   { icon: 'trash-2', name: 'Papierkorb', route: 'papierkorb' },
   { icon: 'settings', name: 'Einstellungen', route: 'einstellungen' },
@@ -39,6 +40,7 @@ export function Uebersicht() {
     routinen: mehrzahl(store.liste('routine').length, 'Vorlage', 'Vorlagen'),
     pools: mehrzahl(store.liste('pool').length, 'Pool', 'Pools'),
     kategorien: mehrzahl(store.liste('kategorie').length, 'Kategorie', 'Kategorien'),
+    garten: `Level ${punkte.stand().level}`,
     papierkorb: mehrzahl(store.papierkorb().filter((d) => TYP_EINZAHL[d.typ]).length, 'Eintrag', 'Einträge'),
   };
 

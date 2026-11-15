@@ -1569,3 +1569,52 @@ div.aufgabe-haupt { cursor: default; }
   pointer-events: none;
   box-shadow: 0 8px 20px rgba(62, 43, 35, 0.3);
 }
+
+/* ---------- Level und Garten (ab Etappe 9) ---------- */
+
+/* Balken für die EP bis zum nächsten Level */
+.ep-balken { display: block; height: 6px; border-radius: 3px; background: var(--zart); overflow: hidden; }
+.ep-balken i { display: block; height: 100%; border-radius: 3px; background: var(--gold); transition: width 0.25s ease; }
+
+/* Schmale Zeile oben im Tagesbereich */
+.level-zeile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 9px 12px 9px 12px;
+  background: var(--flaeche);
+  border: 1px solid var(--linie);
+  border-radius: var(--rund);
+  color: var(--tinte-blass);
+  text-align: left;
+}
+.level-icon {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--gold-zart);
+  color: var(--gold);
+}
+.level-mitte { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+.level-kopf { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.level-kopf strong { font-size: 16px; font-weight: 500; color: var(--tinte); }
+.level-kopf span { font-size: 13.5px; color: var(--tinte-leise); }
+
+/* Seite „Garten“ */
+.garten-karte { padding: 12px; }
+.garten-bild svg { display: block; width: 100%; height: auto; border-radius: 14px; }
+.garten-stand { padding: 14px 6px 6px; }
+.garten-kopf { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.garten-kopf strong { font-size: 24px; font-weight: 500; line-height: 1.2; }
+.garten-kopf span { font-size: 14px; color: var(--tinte-leise); }
+.garten-stand p { margin: 2px 0 12px; font-size: 15px; color: var(--tinte-leise); }
+.garten-stand .ep-balken { height: 8px; border-radius: 4px; }
+.garten-hinweis { padding: 0 4px; font-size: 14.5px; }
+.abschnitt .garten-hinweis { margin-top: 10px; }
+.ep-liste dt { color: var(--tinte); }
+.ep-liste dd, .werte dd.ep { color: var(--gold); font-weight: 500; }

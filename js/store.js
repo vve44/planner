@@ -24,8 +24,42 @@ const zustand = {
 const hoerer = new Set();
 let fehlerMelder = (fehler) => console.error(fehler);
 
+// Während eines Stapels (viele Änderungen auf einmal) wird erst am Ende neu gezeichnet.
+let stapelTiefe = 0;
+let stapelOffen = false;
+
 function benachrichtige() {
+  if (stapelTiefe > 0) {
+    stapelOffen = true;
+    return;
+  }
   hoerer.forEach((fn) => fn());
+}
+
+// Zählt die Änderungen je Typ. Damit lässt sich billig feststellen, ob sich an bestimmten
+// Typen etwas getan hat (zum Beispiel für den Abgleich der EP).
+const aenderungen = {};
+function zaehle(typ) {
+  aenderungen[typ] = (aenderungen[typ] || 0) + 1;
+}
+
+// Summe der Änderungen an diesen Typen seit dem Start (plus alles, was den ganzen Bestand ersetzt hat).
+export function aenderungenAn(typen) {
+  return typen.reduce((summe, typ) => summe + (aenderungen[typ] || 0), aenderungen['*'] || 0);
+}
+
+// Führt mehrere Änderungen aus und meldet sie den Ansichten als eine einzige.
+export function stapel(fn) {
+  stapelTiefe += 1;
+  try {
+    return fn();
+  } finally {
+    stapelTiefe -= 1;
+    if (stapelTiefe === 0 && stapelOffen) {
+      stapelOffen = false;
+      benachrichtige();
+    }
+  }
 }
 
 // Ansichten melden sich hier an und werden bei jeder Änderung neu gezeichnet.
@@ -77,6 +111,7 @@ export async function initialisiere() {
   }
 
   zustand.datensaetze = new Map(bestand.map((d) => [d.id, d]));
+  zaehle('*');
   zustand.bereit = true;
   benachrichtige();
 }
@@ -117,6 +152,7 @@ export function anlegen(typ, felder) {
   const jetzt = jetztIso();
   const datensatz = { ...felder, id: neueId(), typ, erstelltAm: jetzt, geaendertAm: jetzt, geloeschtAm: null };
   zustand.datensaetze.set(datensatz.id, datensatz);
+  zaehle(typ);
   sichere(db.schreibeDatensatz(datensatz));
   benachrichtige();
   return datensatz;
@@ -127,6 +163,7 @@ export function aendern(id, felder) {
   if (!alt) return null;
   const neu = { ...alt, ...felder, id: alt.id, typ: alt.typ, erstelltAm: alt.erstelltAm, geaendertAm: jetztIso() };
   zustand.datensaetze.set(id, neu);
+  zaehle(neu.typ);
   sichere(db.schreibeDatensatz(neu));
   benachrichtige();
   return neu;
@@ -144,7 +181,11 @@ export function wiederherstellen(id) {
 // Entfernt Einträge endgültig (ohne Papierkorb).
 export function entfernen(ids) {
   const liste = Array.isArray(ids) ? ids : [ids];
-  liste.forEach((id) => zustand.datensaetze.delete(id));
+  liste.forEach((id) => {
+    const alt = zustand.datensaetze.get(id);
+    if (alt) zaehle(alt.typ);
+    zustand.datensaetze.delete(id);
+  });
   sichere(db.entferneDatensaetze(liste));
   benachrichtige();
 }
@@ -175,6 +216,7 @@ export async function setzeEinstellung(name, wert) {
 export async function ersetzeBestand(datensaetze) {
   await db.ersetzeAlleDatensaetze(datensaetze);
   zustand.datensaetze = new Map(datensaetze.map((d) => [d.id, d]));
+  zaehle('*');
   benachrichtige();
 }
 
