@@ -140,7 +140,8 @@ strong { font-weight: 500; }
 }
 
 /* Inhalt */
-.inhalt { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+/* Seiten scrollen nur senkrecht. Was seitlich scrollt (Kalender, Board), hat einen eigenen Bereich. */
+.inhalt { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
 .seite {
   padding: 20px var(--rand) 36px;
   display: flex;
@@ -704,6 +705,7 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
 .blatt-inhalt {
   flex: 1;
   min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 10px var(--rand) 24px;
@@ -1261,8 +1263,13 @@ div.aufgabe-haupt { cursor: default; }
 .notiz-haken li.erledigt > span { color: var(--tinte-blass); text-decoration: line-through; }
 
 .tab-rahmen { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.notiz-tabelle { border-collapse: collapse; min-width: 100%; font-size: 15px; line-height: 1.35; }
-.notiz-tabelle th, .notiz-tabelle td { padding: 8px 10px; border: 1px solid var(--linie); text-align: left; vertical-align: top; min-width: 64px; }
+/* In der Leseansicht passt die Tabelle immer in die Breite: Text bricht in der Zelle um,
+   nichts scrollt seitlich. (Seitliches Scrollen hat auf dem iPhone das Scrollen der Seite blockiert.) */
+.tab-rahmen.lesen { overflow: hidden; }
+.notiz-tabelle { border-collapse: collapse; width: 100%; table-layout: fixed; font-size: 15px; line-height: 1.35; }
+.notiz-tabelle th, .notiz-tabelle td { padding: 8px 10px; border: 1px solid var(--linie); text-align: left; vertical-align: top; overflow-wrap: anywhere; hyphens: auto; -webkit-hyphens: auto; }
+.notiz-tabelle.eng { font-size: 13px; }
+.notiz-tabelle.eng th, .notiz-tabelle.eng td { padding: 6px 5px; }
 .notiz-tabelle th { background: var(--zart); font-weight: 500; }
 
 /* Schreiben */

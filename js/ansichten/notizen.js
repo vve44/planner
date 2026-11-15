@@ -284,8 +284,8 @@ function TabelleAnsicht({ block }) {
   if (leer) return null;
   const [kopf, ...rest] = block.kopf ? block.zeilen : [null, ...block.zeilen];
   return html`
-    <div class="tab-rahmen">
-      <table class="notiz-tabelle">
+    <div class="tab-rahmen lesen">
+      <table class=${`notiz-tabelle ${block.zeilen[0].length >= 5 ? 'eng' : ''}`}>
         ${kopf && html`<thead><tr>${kopf.map((zelle) => html`<th scope="col">${zelle}</th>`)}</tr></thead>`}
         <tbody>
           ${rest.map((zeile) => html`<tr>${zeile.map((zelle) => html`<td>${zelle}</td>`)}</tr>`)}
