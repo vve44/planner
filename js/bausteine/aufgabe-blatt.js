@@ -19,6 +19,7 @@ let setzeOffen = null;
 // Öffnet das Aufgaben-Fenster.
 //   { id }              – vorhandene Aufgabe bearbeiten
 //   { vorgaben: {…} }   – neue Aufgabe, zum Beispiel mit Plandatum oder Liste vorbelegt
+//   { vorgaben, beiAngelegt } – beiAngelegt(aufgabe) wird nach dem Anlegen aufgerufen (zum Beispiel, um sie mit einem Ziel zu verknüpfen)
 export function oeffneAufgabe(was) {
   if (setzeOffen) setzeOffen({ ...was, schluessel: Date.now() });
 }
@@ -34,7 +35,7 @@ export function AufgabenFenster() {
     return () => { setzeOffen = null; window.removeEventListener('hashchange', schliesse); };
   }, []);
   if (!offen) return null;
-  return html`<${AufgabeBlatt} key=${offen.schluessel} id=${offen.id} vorgaben=${offen.vorgaben} onSchliessen=${() => setOffen(null)} />`;
+  return html`<${AufgabeBlatt} key=${offen.schluessel} id=${offen.id} vorgaben=${offen.vorgaben} beiAngelegt=${offen.beiAngelegt} onSchliessen=${() => setOffen(null)} />`;
 }
 
 // ---------- Wiederholungsregel ----------
@@ -90,7 +91,7 @@ function RegelEditor({ regel, modus, onRegel, onModus }) {
 
 // ---------- Das Fenster ----------
 
-function AufgabeBlatt({ id, vorgaben, onSchliessen }) {
+function AufgabeBlatt({ id, vorgaben, beiAngelegt, onSchliessen }) {
   const vorhanden = id ? store.hole(id) : null;
   const serie = vorhanden ? aufgaben.serieVon(vorhanden) : null;
   const start = vorhanden || aufgaben.leereAufgabe(vorgaben);
@@ -175,7 +176,8 @@ function AufgabeBlatt({ id, vorgaben, onSchliessen }) {
     if (vorhanden) {
       aufgaben.aendereAufgabe(vorhanden.id, felder, wiederholt ? { regel, modus } : serie ? null : undefined);
     } else {
-      aufgaben.neueAufgabe(felder, wiederholt ? { regel, modus } : null);
+      const neu = aufgaben.neueAufgabe(felder, wiederholt ? { regel, modus } : null);
+      if (beiAngelegt) beiAngelegt(neu);
     }
     onSchliessen();
   };

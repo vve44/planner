@@ -156,6 +156,9 @@ function erzeugeNachfolger(aufgabe, serie) {
     checkliste: aufgabe.checkliste.map((c) => ({ ...c, id: neueId(), erledigt: false })),
     erledigtAm: null,
     vorgaengerId: aufgabe.id,
+    // Im Board beginnt die nächste Aufgabe wieder in der ersten Spalte.
+    kanbanSpalteId: null,
+    kanbanRang: null,
   });
 }
 

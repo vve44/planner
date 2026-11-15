@@ -4,7 +4,7 @@
 
 // Bei jeder neuen Etappe wird diese Versionsnummer erhöht. Daran erkennt das
 // Handy, dass es neue Dateien gibt.
-const VERSION = 'planner-5.0.0';
+const VERSION = 'planner-8.0.0';
 
 // Alle Dateien der App. Die Liste wird beim Zusammenstellen automatisch gefüllt.
 /* DATEIEN-ANFANG */
@@ -26,12 +26,17 @@ const DATEIEN = [
   'js/ansichten/habits.js',
   'js/ansichten/heute.js',
   'js/ansichten/kalender.js',
+  'js/ansichten/kanban.js',
   'js/ansichten/kategorien.js',
+  'js/ansichten/notizen.js',
   'js/ansichten/papierkorb.js',
   'js/ansichten/pools.js',
   'js/ansichten/routinen.js',
+  'js/ansichten/suche.js',
   'js/ansichten/tagesroutinen.js',
   'js/ansichten/uebersicht.js',
+  'js/ansichten/ziele.js',
+  'js/ansichten/zyklus.js',
   'js/app.js',
   'js/aufgaben.js',
   'js/backup.js',
@@ -45,6 +50,9 @@ const DATEIEN = [
   'js/bausteine/icon-wahl.js',
   'js/bausteine/icon.js',
   'js/bausteine/kalender-raster.js',
+  'js/bausteine/kanban-ziehen.js',
+  'js/bausteine/notiz-text.js',
+  'js/bausteine/pin-teile.js',
   'js/bausteine/termin-blatt.js',
   'js/bildschirm.js',
   'js/db.js',
@@ -52,6 +60,9 @@ const DATEIEN = [
   'js/haken.js',
   'js/hilfen.js',
   'js/icon-daten.js',
+  'js/kanban.js',
+  'js/notizen.js',
+  'js/pin.js',
   'js/pools.js',
   'js/regeln.js',
   'js/routinen.js',
@@ -60,6 +71,8 @@ const DATEIEN = [
   'js/termine.js',
   'js/typen.js',
   'js/version.js',
+  'js/ziele.js',
+  'js/zyklus.js',
   'manifest.webmanifest',
 ];
 /* DATEIEN-ENDE */

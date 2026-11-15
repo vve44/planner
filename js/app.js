@@ -18,6 +18,12 @@ import { Tagesroutinen } from './ansichten/tagesroutinen.js';
 import { Routinen } from './ansichten/routinen.js';
 import { Pools, Pool } from './ansichten/pools.js';
 import { Habits, Habit } from './ansichten/habits.js';
+import { Notizen, Notiz } from './ansichten/notizen.js';
+import { Suche } from './ansichten/suche.js';
+import { Ziele, Ziel } from './ansichten/ziele.js';
+import { Zyklus } from './ansichten/zyklus.js';
+import * as notizen from './notizen.js';
+import * as kanban from './kanban.js';
 import * as habits from './habits.js';
 import { Kategorien } from './ansichten/kategorien.js';
 import { Papierkorb } from './ansichten/papierkorb.js';
@@ -41,6 +47,12 @@ const SEITEN = {
   pool: { titel: 'Pool', ansicht: Pool, tab: 'uebersicht', zurueck: 'pools' },
   habits: { titel: 'Habits', ansicht: Habits, tab: 'uebersicht', zurueck: 'herkunft' },
   habit: { titel: 'Habit', ansicht: Habit, tab: 'uebersicht', zurueck: 'habits' },
+  notizen: { titel: 'Notizen', ansicht: Notizen, tab: 'uebersicht', zurueck: 'herkunft' },
+  notiz: { titel: 'Notiz', ansicht: Notiz, tab: 'uebersicht', zurueck: 'notizen' },
+  suche: { titel: 'Suche', ansicht: Suche, tab: 'uebersicht', zurueck: 'herkunft' },
+  ziele: { titel: 'Ziele', ansicht: Ziele, tab: 'uebersicht', zurueck: 'herkunft' },
+  ziel: { titel: 'Ziel', ansicht: Ziel, tab: 'uebersicht', zurueck: 'ziele' },
+  zyklus: { titel: 'Zyklus', ansicht: Zyklus, tab: 'uebersicht', zurueck: 'herkunft' },
   kategorien: { titel: 'Kategorien', ansicht: Kategorien, tab: 'uebersicht', zurueck: 'uebersicht' },
   papierkorb: { titel: 'Papierkorb', ansicht: Papierkorb, tab: 'uebersicht', zurueck: 'uebersicht' },
   einstellungen: { titel: 'Einstellungen', ansicht: Einstellungen, tab: 'uebersicht', zurueck: 'uebersicht' },
@@ -76,7 +88,7 @@ function App() {
   if (zurueck === 'herkunft') {
     zurueck = letzterHauptbereich === 'kalender' ? 'uebersicht' : letzterHauptbereich;
     tab = zurueck;
-  } else if (route.name === 'pool' || route.name === 'habit') {
+  } else if (route.name === 'pool' || route.name === 'habit' || route.name === 'notiz' || route.name === 'ziel') {
     // Ein einzelner Pool (ein einzelnes Habit) leuchtet unter dem Bereich, aus dem die Liste geöffnet wurde.
     tab = letzterHauptbereich === 'kalender' ? 'uebersicht' : letzterHauptbereich;
   }
@@ -85,6 +97,25 @@ function App() {
   if (route.name === 'liste' || route.name === 'pool' || route.name === 'habit') {
     const eintrag = route.teil ? store.hole(route.teil) : null;
     if (eintrag && eintrag.name) titel = eintrag.name;
+  }
+  // Kalender und Board füllen die Seite selbst und scrollen in sich.
+  let fest = route.name === 'kalender';
+  if (route.name === 'liste') {
+    const projekt = route.teil ? store.hole(route.teil) : null;
+    fest = Boolean(projekt && projekt.typ === 'projekt' && !projekt.geloeschtAm && kanban.ansichtVon(projekt) === 'board');
+  }
+  if (route.name === 'ziel') {
+    const ziel = route.teil ? store.hole(route.teil) : null;
+    if (ziel && ziel.typ === 'ziel' && !ziel.geloeschtAm) titel = ziel.titel;
+  }
+  if (route.name === 'notiz') {
+    const notiz = route.teil ? store.hole(route.teil) : null;
+    if (notiz && notiz.typ === 'notiz' && !notiz.geloeschtAm) {
+      titel = notiz.titel;
+      // Aus einer Unternotiz führt der Pfeil zurück zu ihrer Notiz.
+      const eltern = notizen.elternVon(notiz);
+      if (eltern) zurueck = `notiz/${eltern.id}`;
+    }
   }
 
   // Beim Seitenwechsel nach oben springen.
@@ -111,7 +142,7 @@ function App() {
       </div>
     </header>
 
-    <main class=${`inhalt ${route.name === 'kalender' ? 'fest' : ''}`} ref=${inhalt}>
+    <main class=${`inhalt ${fest ? 'fest' : ''}`} ref=${inhalt}>
       ${updateBereit() && html`
         <div class="update-band">
           <span>Eine neue Version liegt bereit.</span>
@@ -158,6 +189,7 @@ async function starte() {
 
   aufgaben.sicherstelleMerkliste();
   habits.raeumeAuf();
+  notizen.raeumeAuf();
   document.documentElement.dataset.schrift = gewaehlteSchrift();
   richteBildschirmEin();
 

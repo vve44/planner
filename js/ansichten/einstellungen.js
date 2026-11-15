@@ -1,9 +1,11 @@
-// Einstellungen: Backup, Speicher und Version.
+// Einstellungen: Schrift, Backup, PIN für Notizen, Speicher und Version.
 
 import { html, useState, useEffect } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
 import { melde } from '../bausteine/fenster.js';
 import { oeffneBackup } from '../bausteine/backup-dialoge.js';
+import { PinBlatt } from '../bausteine/pin-teile.js';
+import * as pin from '../pin.js';
 import { useDaten } from '../haken.js';
 import * as store from '../store.js';
 import { backupStatus, ERINNERUNG_TAGE } from '../backup.js';
@@ -29,6 +31,7 @@ export function Einstellungen() {
   const [dauerhaft, setDauerhaft] = useState(null);
   const [, setUpdateZaehler] = useState(0);
   const [sucht, setSucht] = useState(false);
+  const [pinFenster, setPinFenster] = useState(null); // null | 'einrichten' | 'aendern' | 'vergessen'
 
   useEffect(() => {
     if (navigator.storage && navigator.storage.persisted) {
@@ -98,6 +101,39 @@ export function Einstellungen() {
             <${Icon} name="upload" /> Backup wiederherstellen
           </button>
         </div>
+      </section>
+
+      <section class="abschnitt">
+        <h2>PIN für Notizen</h2>
+        <p class="text-leise">
+          Mit der vierstelligen PIN sperrst du einzelne Notizen und Messwert-Tracker. Der Rest der App bleibt offen.
+          Die PIN ist ein Sichtschutz, keine Verschlüsselung.
+        </p>
+        <dl class="werte">
+          <div>
+            <dt>PIN</dt>
+            <dd>${pin.istGesetzt() ? 'Festgelegt' : 'Noch keine'}</dd>
+          </div>
+          <div>
+            <dt>Gesperrte Notizen</dt>
+            <dd>${store.liste('notiz').filter((n) => n.gesperrt).length}</dd>
+          </div>
+        </dl>
+        <div class="knopf-stapel">
+          ${pin.istGesetzt() ? html`
+            <button class="knopf breit leise" type="button" onClick=${() => setPinFenster('aendern')}>
+              <${Icon} name="lock" /> PIN ändern
+            </button>
+            <button class="knopf breit leise" type="button" onClick=${() => setPinFenster('vergessen')}>
+              <${Icon} name="key-round" /> PIN vergessen: mit Backup-Passwort zurücksetzen
+            </button>
+          ` : html`
+            <button class="knopf breit leise" type="button" onClick=${() => setPinFenster('einrichten')}>
+              <${Icon} name="lock" /> PIN festlegen
+            </button>
+          `}
+        </div>
+        ${pinFenster && html`<${PinBlatt} key=${pinFenster} modus=${pinFenster} onSchliessen=${() => setPinFenster(null)} />`}
       </section>
 
       <section class="abschnitt">

@@ -1,4 +1,4 @@
-// Kalender: Tag, 7 Tage, Monat und Agenda. Termine anlegen, Aufgaben sehen und einplanen.
+// Kalender: Tag, Woche, Monat und Agenda. Termine anlegen, Aufgaben sehen und einplanen.
 // Dieser Bereich nutzt die grün-blaue Farbwelt, alles andere die warmen Brauntöne.
 
 import { html, useState } from '../../bibliothek/preact-htm.js';
@@ -19,7 +19,7 @@ import { WOCHENTAGE } from '../typen.js';
 
 const ANSICHTEN = [
   { wert: 'tag', name: 'Tag' },
-  { wert: 'woche', name: '7 Tage' },
+  { wert: 'woche', name: 'Woche' },
   { wert: 'monat', name: 'Monat' },
   { wert: 'agenda', name: 'Agenda' },
 ];
@@ -40,7 +40,7 @@ export function Kalender() {
   const [terminOffen, setTerminOffen] = useState(null);
   const [entwurf, setEntwurf] = useState('');
   const ansicht = store.einstellung('kalender.ansicht', 'tag');
-  // 7-Tage-Ansicht: alle Tage auf einen Blick (Standard) oder breitere Spalten zum seitlichen Scrollen.
+  // Wochenansicht: alle Tage auf einen Blick (Standard) oder breitere Spalten zum seitlichen Scrollen.
   const wocheBreit = store.einstellung('kalender.wocheBreit', false) === true;
   const tag0 = heute();
 

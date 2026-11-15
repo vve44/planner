@@ -38,7 +38,9 @@
   --rund: 16px;
   --rund-klein: 12px;
   --oben-sicher: env(safe-area-inset-top, 0px);
-  --unten-sicher: env(safe-area-inset-bottom, 0px);
+  /* Auf dem iPhone endet die App vom Home-Bildschirm aus ein Stück über dem unteren
+     Bildschirmrand (siehe js/bildschirm.js). Dieses Stück wird vom Sicherheitsabstand abgezogen. */
+  --unten-sicher: max(0px, env(safe-area-inset-bottom, 0px) - var(--unten-luecke, 0px));
 }
 
 html[data-schrift='manrope'] { --schrift: 'Manrope', var(--ersatz); }
@@ -51,8 +53,9 @@ html[data-schrift='montserrat'] { --schrift: 'Montserrat', var(--ersatz); }
 
 html { height: 100%; background: var(--flaeche); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
-/* Der Hintergrund hinter der App hat die Farbe der unteren Leiste. Sollte das iPhone
-   die App einmal nicht bis ganz nach unten ziehen, entsteht so kein andersfarbiger Streifen. */
+/* Der Hintergrund hinter der App hat die Farbe der unteren Leiste. Vom Home-Bildschirm aus
+   zeichnet das iPhone die App nicht bis ganz nach unten, der Rest zeigt diesen Hintergrund
+   und wirkt so wie ein Teil der Leiste. */
 body {
   height: 100%;
   margin: 0;
@@ -68,7 +71,7 @@ body {
   overscroll-behavior: none;
 }
 
-h1, h2, h3, p, ul, dl, dd, fieldset, legend { margin: 0; padding: 0; }
+h1, h2, h3, h4, p, ul, ol, dl, dd, fieldset, legend { margin: 0; padding: 0; }
 ul { list-style: none; }
 fieldset { border: 0; min-width: 0; }
 button, input, select, textarea { font: inherit; color: inherit; }
@@ -85,11 +88,7 @@ strong { font-weight: 500; }
 
 #app {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100%;
-  height: 100dvh;
+  inset: 0;
   max-width: 560px;
   margin: 0 auto;
   display: flex;
@@ -97,10 +96,6 @@ strong { font-weight: 500; }
   background: var(--grund);
   overflow: hidden;
 }
-
-/* Vom Home-Bildschirm gestartet rechnet das iPhone "unten" teils zu kurz (um die Höhe
-   der Statusleiste). Dort gilt die echte Bildschirmhöhe, siehe js/bildschirm.js. */
-html.installiert #app { height: 100vh; height: var(--bildschirm, 100vh); }
 
 .start-hinweis { margin: auto; padding: 32px; text-align: center; color: var(--tinte-leise); }
 
@@ -973,6 +968,25 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
 .ohne-chip .icon { color: var(--mittel); margin-left: -3px; }
 .ohne-chip span { overflow: hidden; text-overflow: ellipsis; }
 .raster-rahmen.tag .ganztag-chip, .raster-rahmen.tag .ohne-chip { min-height: 32px; padding: 4px 10px; font-size: 14px; }
+/* Vor 6 Uhr: Schild mit Uhrzeit im Tageskopf */
+.frueh-chip {
+  max-width: 100%;
+  min-height: 26px;
+  padding: 2px 8px;
+  border-radius: 7px;
+  background: var(--zart-3);
+  font-size: 12.5px;
+  line-height: 1.25;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #22383a;
+}
+.frueh-chip.erledigt { background: var(--zart); color: var(--tinte-blass); text-decoration: line-through; }
+.ganztag-chip small, .frueh-chip small { font-size: 0.86em; opacity: 0.75; font-variant-numeric: tabular-nums; }
+.raster-rahmen.tag .frueh-chip { min-height: 32px; padding: 4px 10px; font-size: 14px; }
+.raster-rahmen.kompakt .frueh-chip { min-height: 17px; padding: 1px 3px; border-radius: 5px; font-size: 10px; line-height: 1.3; text-overflow: clip; }
 .ohne-mehr { font-size: 12px; color: var(--tinte-blass); padding: 0 2px; }
 
 .stunden { position: relative; flex: none; width: var(--rinne); background: var(--flaeche); }
@@ -989,6 +1003,7 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
   border-left: 1px solid var(--linie);
   background-image: linear-gradient(to bottom, var(--linie) 1px, transparent 1px);
   background-size: 100% var(--stunde);
+  background-position: 0 var(--raster-oben, 0px);
 }
 .tag-spalte.heute { background-color: rgba(225, 236, 232, 0.35); }
 
@@ -1046,7 +1061,6 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
 .raster-rahmen.kompakt .ganztag-chip { border-left-width: 2px; }
 .raster-rahmen.kompakt .ohne-mehr { font-size: 10px; text-align: center; padding: 0; }
 .raster-rahmen.kompakt .stunden span { right: 4px; font-size: 10px; }
-.stunden span.erste { transform: translateY(3px); }
 .raster-rahmen.kompakt .block { border-radius: 5px; font-size: 10px; line-height: 1.18; }
 .raster-rahmen.kompakt .block strong { white-space: normal; overflow-wrap: anywhere; -webkit-hyphens: auto; hyphens: auto; text-overflow: clip; font-weight: 500; }
 .raster-rahmen.kompakt .block.kurz { font-size: 10px; }
@@ -1221,3 +1235,330 @@ div.aufgabe-haupt { cursor: default; }
 .heat-legende span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .heat-legende .heat-zelle { width: 13px; flex: none; }
 .heat-nav { flex: none; display: flex; }
+
+/* ==========================================================================
+   Notizen, Messwerte, PIN, Suche (ab Etappe 6)
+   ========================================================================== */
+
+.einzeilig { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zeile-haupt.blass strong, .zeile-haupt.blass .listen-icon { color: var(--tinte-blass); }
+.feld-hinweis .icon { vertical-align: -2px; }
+
+/* Leseansicht einer Notiz */
+.notiz-inhalt { display: flex; flex-direction: column; gap: 16px; padding: 18px 16px; }
+.notiz-text { display: flex; flex-direction: column; gap: 10px; font-size: 16.5px; line-height: 1.55; overflow-wrap: anywhere; }
+.notiz-text h3 { font-size: 20px; font-weight: 500; line-height: 1.25; margin-top: 4px; }
+.notiz-text h4 { font-size: 17px; font-weight: 500; line-height: 1.3; color: var(--akzent); margin-top: 2px; }
+.notiz-text strong { font-weight: 600; }
+.notiz-text ul, .notiz-text ol { display: flex; flex-direction: column; gap: 4px; padding-left: 22px; }
+.notiz-text ul { list-style: disc; }
+.notiz-text ol { list-style: decimal; }
+.notiz-text li::marker { color: var(--mittel); }
+
+.notiz-haken { display: flex; flex-direction: column; }
+.notiz-haken li { display: flex; align-items: center; gap: 2px; margin-left: -10px; min-height: 40px; }
+.notiz-haken li > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.notiz-haken li.erledigt > span { color: var(--tinte-blass); text-decoration: line-through; }
+
+.tab-rahmen { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.notiz-tabelle { border-collapse: collapse; min-width: 100%; font-size: 15px; line-height: 1.35; }
+.notiz-tabelle th, .notiz-tabelle td { padding: 8px 10px; border: 1px solid var(--linie); text-align: left; vertical-align: top; min-width: 64px; }
+.notiz-tabelle th { background: var(--zart); font-weight: 500; }
+
+/* Schreiben */
+.schreib-block { display: flex; flex-direction: column; gap: 8px; }
+.schreib-kopf { display: flex; align-items: center; justify-content: space-between; min-height: 36px; }
+.schreib-kopf > span:first-child { font-size: 14px; font-weight: 500; color: var(--tinte-leise); }
+.schreib-knoepfe { display: flex; margin-right: -8px; }
+.schreib-knoepfe .knopf-rund { width: 38px; height: 36px; }
+.schreib-neu { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px; }
+.schreib-neu .chip, .tab-block .chip { display: inline-flex; align-items: center; gap: 5px; }
+
+.text-block { border: 1px solid var(--linie); border-radius: var(--rund-klein); background: var(--flaeche); overflow: hidden; }
+.format-leiste { display: flex; gap: 2px; padding: 4px 6px; border-bottom: 1px solid var(--linie); background: var(--zart); }
+.format-leiste button { width: 44px; height: 40px; display: grid; place-items: center; border-radius: 9px; color: var(--akzent); }
+.format-leiste button:active { background: var(--zart-2); }
+/* Das Textfeld wächst mit: Ein unsichtbarer Zwilling mit demselben Text bestimmt die Höhe. */
+.wachs { display: grid; }
+.wachs::after { content: attr(data-wert) ' '; visibility: hidden; white-space: pre-wrap; }
+.wachs > textarea, .wachs::after {
+  grid-area: 1 / 1 / 2 / 2;
+  min-width: 0;
+  min-height: 132px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  font-size: 16.5px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.wachs > textarea { resize: none; overflow: hidden; background: transparent; box-shadow: none; }
+
+.tab-block { display: flex; flex-direction: column; gap: 10px; }
+.tab-bearbeiten { border-collapse: separate; border-spacing: 4px; margin: -4px; }
+.tab-bearbeiten td { padding: 0; }
+.tab-bearbeiten .feld { width: 100%; min-width: 104px; min-height: 42px; padding: 8px 10px; font-size: 15.5px; }
+.tab-bearbeiten tr.kopfzeile .feld { background: var(--zart); font-weight: 500; }
+.tab-bearbeiten .tab-knopf { text-align: center; }
+.tab-bearbeiten .tab-knopf .knopf-rund { width: 36px; height: 36px; margin: 0 auto; }
+
+/* Messwert-Tracker */
+.wert-neu { display: grid; grid-template-columns: 1.25fr 1fr 50px; gap: 10px; align-items: end; padding: 14px; }
+.wert-neu label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.wert-neu label span { font-size: 14px; color: var(--tinte-leise); }
+.wert-neu .feld { width: 100%; min-width: 0; }
+.wert-neu .knopf { width: 50px; padding: 0; }
+.wert-neu .fehlertext { grid-column: 1 / -1; }
+.wert-zeile .zeile-zahl { font-size: 16.5px; color: var(--tinte); font-variant-numeric: tabular-nums; }
+.kurve-karte { padding: 12px 8px 6px; }
+.kurve { display: block; width: 100%; height: auto; }
+.kurve-linie { stroke: var(--linie); stroke-width: 1; }
+.kurve-zahl { font-size: 10.5px; fill: var(--tinte-leise); font-variant-numeric: tabular-nums; }
+.kurve-flaeche { fill: var(--zart); opacity: 0.7; }
+.kurve-strich { fill: none; stroke: var(--akzent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.kurve-punkt { fill: var(--flaeche); stroke: var(--akzent); stroke-width: 1.5; }
+.kurve-letzter { fill: var(--gold); stroke: var(--flaeche); stroke-width: 2; }
+
+/* PIN */
+.pin-sperre { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 12px 0 24px; text-align: center; }
+.pin-eingabe { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.pin-eingabe h2 { font-size: 20px; font-weight: 500; }
+.pin-punkte { display: flex; gap: 16px; padding: 10px 0 2px; }
+.pin-punkte i { width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid var(--mittel); }
+.pin-punkte i.voll { background: var(--akzent); border-color: var(--akzent); }
+.pin-punkte.falsch { animation: pin-wackeln 0.3s ease; }
+@keyframes pin-wackeln { 25% { transform: translateX(-7px); } 75% { transform: translateX(7px); } }
+@media (prefers-reduced-motion: reduce) { .pin-punkte.falsch { animation: none; } }
+.pin-fehler { min-height: 22px; }
+.pin-tasten { display: grid; grid-template-columns: repeat(3, 72px); gap: 12px 20px; padding-top: 4px; }
+.pin-taste {
+  width: 72px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  border: 1px solid var(--linie);
+  background: var(--flaeche);
+  font-size: 25px;
+  font-weight: 400;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--tinte);
+}
+.pin-taste:active { background: var(--zart); }
+.pin-taste.leise { border-color: transparent; background: transparent; color: var(--tinte-leise); }
+.pin-taste:disabled { opacity: 0.3; }
+
+/* Suche */
+.such-feld { position: relative; display: flex; align-items: center; }
+.such-feld > .icon { position: absolute; left: 14px; color: var(--tinte-blass); pointer-events: none; }
+.such-feld .feld { flex: 1; min-width: 0; padding-left: 44px; padding-right: 46px; -webkit-appearance: none; appearance: none; }
+.such-feld .feld::-webkit-search-cancel-button { display: none; }
+.such-feld .knopf-rund { position: absolute; right: 2px; }
+.such-hinweis { margin-top: -6px; font-size: 15px; }
+.wachs > textarea:focus { box-shadow: none; }
+.text-block:focus-within { border-color: var(--akzent); box-shadow: 0 0 0 3px rgba(160, 126, 105, 0.28); }
+
+/* ==========================================================================
+   Zyklus und Ziele (ab Etappe 7)
+   ========================================================================== */
+
+.warnung { color: var(--gefahr); }
+
+/* Zyklus */
+.zyklus-stand { display: flex; flex-direction: column; gap: 10px; padding: 18px 16px; }
+.zyklus-stand h2 { font-size: 24px; font-weight: 500; line-height: 1.2; }
+.zyklus-stand > p { font-size: 15.5px; color: var(--tinte-leise); }
+.zyklus-stand .zyklus-tag { font-size: 14px; font-weight: 500; color: var(--gold); }
+.zyklus-stand .zyklus-merk { display: flex; gap: 6px; align-items: flex-start; font-size: 14.5px; color: var(--akzent); }
+.zyklus-merk .icon { flex: none; margin-top: 3px; }
+.zyklus-hinweis { font-size: 14px; line-height: 1.45; }
+
+.phasen { display: flex; flex-direction: column; gap: 10px; padding-top: 6px; }
+.phasen-balken { position: relative; display: flex; gap: 2px; height: 12px; }
+.phasen-balken i { display: block; min-width: 0; border-radius: 3px; }
+.phasen-balken i:first-child { border-radius: 6px 3px 3px 6px; }
+.phasen-balken i:nth-last-child(2) { border-radius: 3px 6px 6px 3px; }
+.phasen-balken b {
+  position: absolute;
+  top: -5px;
+  width: 4px;
+  height: 22px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: var(--tinte);
+  box-shadow: 0 0 0 2px var(--flaeche);
+}
+.phase-menstruation { background: #c58f86; }
+.phase-follikel { background: var(--zart-2); }
+.phase-eisprung { background: var(--gold); }
+.phase-luteal { background: var(--zart-3); }
+.phasen-namen { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; color: var(--tinte-leise); }
+.phasen-namen span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.phasen-namen span.aktiv { color: var(--tinte); font-weight: 500; }
+.phasen-namen i { width: 9px; height: 9px; border-radius: 50%; }
+
+/* Ziele */
+.ziel-liste { display: flex; flex-direction: column; gap: 10px; }
+.ziel-karte {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px 16px 14px;
+  border-radius: var(--rund);
+  border: 1px solid var(--linie);
+  background: var(--flaeche);
+  text-align: left;
+}
+.ziel-karte:active { background: var(--zart); }
+.ziel-kopf { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.ziel-kopf strong { display: inline-flex; align-items: center; gap: 6px; min-width: 0; font-size: 17.5px; font-weight: 500; line-height: 1.25; overflow-wrap: anywhere; }
+.ziel-kopf strong .icon { flex: none; color: var(--gold); }
+.ziel-prozent { flex: none; font-size: 15px; font-weight: 500; color: var(--akzent); font-variant-numeric: tabular-nums; }
+.ziel-balken { height: 8px; border-radius: 4px; background: var(--zart); overflow: hidden; }
+.ziel-balken i { display: block; height: 100%; border-radius: 4px; background: var(--gold); transition: width 0.2s ease; }
+.ziel-meta { display: flex; flex-wrap: wrap; gap: 3px 14px; font-size: 13.5px; color: var(--tinte-leise); }
+.ziel-meta span { display: inline-flex; align-items: center; gap: 6px; }
+.ziel-meta .warnung { color: var(--gefahr); }
+.ziel-karte.erreicht strong, .ziel-karte.erreicht .ziel-prozent { color: var(--tinte-leise); }
+
+.ziel-stand { display: flex; flex-direction: column; gap: 10px; padding: 18px 16px; }
+.ziel-stand .ziel-gross { font-size: 34px; font-weight: 450; line-height: 1; font-variant-numeric: tabular-nums; }
+.ziel-stand > p:last-child { font-size: 15px; color: var(--tinte-leise); }
+.ziel-stand.erreicht .ziel-gross { color: var(--gold); }
+
+/* Auswahl zum Verknüpfen */
+.auswahl-zeile { width: 100%; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 14px; text-align: left; }
+.auswahl-zeile .haken-kreis { flex: none; }
+.auswahl-zeile[aria-checked='true'] .haken-kreis { background: var(--gold); border-color: var(--gold); color: #fff; }
+.auswahl li + li { border-top: 1px solid var(--linie); }
+
+/* ==========================================================================
+   Board (Kanban, ab Etappe 8)
+   ========================================================================== */
+
+.board-seite { height: 100%; display: flex; flex-direction: column; }
+.board-kopf { flex: none; display: flex; flex-direction: column; gap: 14px; padding: 20px var(--rand) 10px; }
+.board-kopf .leiste { margin: -8px 0 -4px; }
+.board { position: relative; flex: 1; min-height: 0; display: flex; }
+
+/* Die Spalten scrollen seitlich, jede Spalte in sich hoch und runter. */
+.board-spalten {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  padding: 4px var(--rand) 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scroll-padding-left: var(--rand);
+  scrollbar-width: none;
+}
+.board-spalten::-webkit-scrollbar { display: none; }
+.board-spalten::after { content: ''; flex: none; width: 1px; }
+/* Beim Ziehen rastet das Board nicht ein, sonst springt es beim Weiterrollen. */
+.board.zieht .board-spalten { scroll-snap-type: none; }
+
+.board-spalte {
+  flex: none;
+  width: min(78vw, 320px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--rund);
+  background: var(--zart);
+  scroll-snap-align: start;
+}
+.board-spalte-kopf { flex: none; display: flex; align-items: center; gap: 8px; padding: 4px 2px 0 14px; }
+.board-spalte-kopf h2 { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; font-size: 15.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-spalte-kopf h2 .icon { flex: none; color: var(--gold); }
+.board-spalte-kopf > span { font-size: 14px; color: var(--tinte-leise); font-variant-numeric: tabular-nums; }
+.board-spalte.ablage-ziel { box-shadow: inset 0 0 0 2px var(--gold); }
+
+.board-karten {
+  flex: 1;
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 8px 8px;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+.board-karten.einfuegen-ende::after { content: ''; flex: none; height: 3px; border-radius: 2px; background: var(--gold); }
+.board-leer { padding: 12px 8px; font-size: 14px; text-align: center; color: var(--tinte-blass); }
+
+.k-karte {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  border-radius: 12px;
+  border: 1px solid var(--linie);
+  background: var(--flaeche);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.k-karte.einfuegen-davor::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -6px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--gold);
+}
+.k-karte.wird-gezogen { opacity: 0.35; }
+.k-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; padding: 10px 0 10px; text-align: left; }
+.k-text strong { font-size: 15.5px; font-weight: 450; line-height: 1.3; overflow-wrap: anywhere; }
+.k-meta { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 12.5px; color: var(--tinte-leise); }
+.k-meta span { display: inline-flex; align-items: center; gap: 4px; }
+.k-meta .gold { color: var(--gold); }
+.k-mehr { flex: none; width: 38px; height: 40px; display: grid; place-items: center; color: var(--tinte-blass); }
+.k-karte.erledigt strong { color: var(--tinte-blass); text-decoration: line-through; }
+.k-karte.erledigt .k-meta { color: var(--tinte-blass); }
+
+.board-neu { flex: none; display: flex; align-items: center; gap: 6px; min-height: 46px; padding: 0 14px; font-size: 15px; font-weight: 500; color: var(--akzent); }
+.board-spalte-neu {
+  flex: none;
+  align-self: flex-start;
+  width: 132px;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: var(--rund);
+  border: 1px dashed var(--zart-3);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--akzent);
+  scroll-snap-align: start;
+}
+
+/* Schild, das beim Ziehen dem Finger folgt */
+.zieh-schild {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 50;
+  max-width: 210px;
+  padding: 8px 13px;
+  border-radius: 10px;
+  background: var(--akzent-tief);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  box-shadow: 0 8px 20px rgba(62, 43, 35, 0.3);
+}

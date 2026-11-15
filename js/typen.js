@@ -34,6 +34,8 @@ export const TYP_EINZAHL = {
   pool: 'Aufgabenpool',
   poolEintrag: 'Pool-Eintrag',
   habit: 'Habit',
+  notiz: 'Notiz',
+  ziel: 'Ziel',
 };
 
 // Farben für Kategorien: die Töne der Palette plus gedeckte Ergänzungen,

@@ -15,7 +15,8 @@ import { heute, jetztMin, minZuZeit, zeitZuMin, wochentagKurz, datumAusText, auf
 const STUNDE_GROSS = 56;         // Höhe einer Stunde in Pixeln (Tag und breite 7-Tage-Ansicht)
 const STUNDE_KLEIN = 44;         // Höhe einer Stunde, wenn alle 7 Tage nebeneinander stehen
 export const SPALTE = 108;       // Breite eines Tages in der breiten 7-Tage-Ansicht
-const RASTER_BEGINN = 6 * 60;    // Das Raster beginnt um 6 Uhr, außer es liegt etwas davor
+const RASTER_BEGINN = 6 * 60;    // Das Raster beginnt immer um 6 Uhr. Früheres steht als Schild im Tageskopf.
+const OBEN = 10;                 // Freier Rand über der ersten Stundenlinie, damit ihre Uhrzeit Platz hat
 const STANDARD_DAUER = 30;       // Blocklänge einer Aufgabe ohne Dauer, in Minuten
 const SCHRITT = 15;              // Beim Ablegen rastet die Zeit auf 15 Minuten ein
 const DRUECK_DAUER = 380;        // So lange muss der Finger ruhen, bevor das Ziehen beginnt
@@ -99,23 +100,27 @@ export function Raster({ tage, modus = 'tag', onTermin, onLeer, onTag }) {
     const { ganztags, zeitlich } = termine.eintraegeAm(tag, liste);
     const eigene = alleAufgaben.filter((a) => a.plandatum === tag);
     const ohneZeit = aufgaben.sortiere(eigene.filter((a) => !a.startzeit && !a.erledigtAm));
-    const bloecke = ordneAn([
-      ...zeitlich.map((v) => ({ art: 'termin', v, vonMin: v.vonMin, bisMin: v.bisMin })),
+    const alle = [
+      ...zeitlich.map((v) => ({ art: 'termin', v, vonMin: v.vonMin, bisMin: v.bisMin, echtVon: v.vonMin })),
       ...eigene.filter((a) => a.startzeit).map((a) => {
         const von = zeitZuMin(a.startzeit);
-        return { art: 'aufgabe', a, vonMin: von, bisMin: Math.min(1440, von + (a.dauerMin || STANDARD_DAUER)) };
+        return { art: 'aufgabe', a, vonMin: von, bisMin: Math.min(1440, von + (a.dauerMin || STANDARD_DAUER)), echtVon: von };
       }),
-    ], Math.ceil((24 / stunde) * 60));
-    return { tag, ganztags, ohneZeit, bloecke };
+    ];
+    // Was vor 6 Uhr endet, steht als Schild mit Uhrzeit im Tageskopf.
+    // Was vor 6 Uhr beginnt und danach endet, beginnt im Raster an der oberen Kante.
+    const frueh = alle.filter((e) => e.bisMin <= RASTER_BEGINN).sort((x, y) => x.vonMin - y.vonMin);
+    const bloecke = ordneAn(
+      alle.filter((e) => e.bisMin > RASTER_BEGINN).map((e) => ({ ...e, vonMin: Math.max(e.vonMin, RASTER_BEGINN) })),
+      Math.ceil((24 / stunde) * 60),
+    );
+    return { tag, ganztags, ohneZeit, frueh, bloecke };
   });
 
-  // Das Raster beginnt um 6 Uhr. Liegt etwas früher (oder ist es gerade früher), beginnt es dort.
-  let beginn = RASTER_BEGINN;
-  daten.forEach((d) => d.bloecke.forEach((b) => { beginn = Math.min(beginn, Math.floor(b.vonMin / 60) * 60); }));
-  if (tage.includes(tag0)) beginn = Math.min(beginn, Math.floor(jetztMin() / 60) * 60);
+  const beginn = RASTER_BEGINN;
   const ersteStunde = beginn / 60;
-  const hoehe = (24 - ersteStunde) * stunde;
-  const lage = (min) => ((min - beginn) / 60) * stunde;
+  const hoehe = OBEN + (24 - ersteStunde) * stunde;
+  const lage = (min) => OBEN + ((min - beginn) / 60) * stunde;
 
   const blockStil = (e) => {
     const breite = 100 / e.spalten;
@@ -153,12 +158,12 @@ export function Raster({ tage, modus = 'tag', onTermin, onLeer, onTag }) {
   const leerGetippt = (e, tag) => {
     if (e.target !== e.currentTarget) return;
     const r = e.currentTarget.getBoundingClientRect();
-    const min = beginn + Math.floor((((e.clientY - r.top) / stunde) * 60) / 30) * 30;
-    onLeer(tag, Math.max(0, Math.min(23 * 60, min)));
+    const min = beginn + Math.floor((((e.clientY - r.top - OBEN) / stunde) * 60) / 30) * 30;
+    onLeer(tag, Math.max(beginn, Math.min(23 * 60, min)));
   };
 
   return html`
-    <div class=${`raster-rahmen ${modus}`} ref=${rahmen} data-stunde=${stunde} data-beginn=${beginn} style=${`--stunde:${stunde}px`}>
+    <div class=${`raster-rahmen ${modus}`} ref=${rahmen} data-stunde=${stunde} data-beginn=${beginn} style=${`--stunde:${stunde}px;--raster-oben:${OBEN}px`}>
       <div class="raster-kopf">
         <div class="raster-ecke"></div>
         <div class="kopf-fenster">
@@ -179,6 +184,21 @@ export function Raster({ tage, modus = 'tag', onTermin, onLeer, onTag }) {
                     ${v.termin.titel}
                   </button>
                 `)}
+                ${d.frueh.map((e) => (e.art === 'termin' ? html`
+                  <button type="button" class="ganztag-chip frueh" key=${`${e.v.termin.id}-${e.v.start}`}
+                    style=${`background:${aufhellen(farbeVon(e.v.termin), 0.55)};border-color:${farbeVon(e.v.termin)}`}
+                    aria-label=${`${e.v.termin.titel}, ${termine.zeitText(e.v, d.tag)}`}
+                    onClick=${() => onTermin(e.v)}>
+                    <small>${minZuZeit(e.echtVon)}</small> ${e.v.termin.titel}
+                  </button>
+                ` : html`
+                  <button type="button" class=${`frueh-chip ${e.a.erledigtAm ? 'erledigt' : ''}`} key=${e.a.id}
+                    data-zieh-id=${e.a.id} data-dauer=${e.a.dauerMin || STANDARD_DAUER} data-titel=${e.a.titel}
+                    aria-label=${`Aufgabe ${e.a.titel}, ${e.a.startzeit} Uhr. Lang drücken und ins Raster ziehen.`}
+                    onClick=${() => oeffneAufgabe({ id: e.a.id })}>
+                    <small>${e.a.startzeit}</small> <span>${e.a.titel}</span>
+                  </button>
+                `))}
                 ${d.ohneZeit.slice(0, maxOhne).map((a) => html`
                   <button type="button" class="ohne-chip" key=${a.id} data-zieh-id=${a.id} data-dauer=${a.dauerMin || STANDARD_DAUER} data-titel=${a.titel}
                     aria-label=${`${a.titel}, ohne Uhrzeit. Lang drücken und ins Raster ziehen.`}
@@ -190,7 +210,7 @@ export function Raster({ tage, modus = 'tag', onTermin, onLeer, onTag }) {
                 ${d.ohneZeit.length > maxOhne && html`
                   <span class="ohne-mehr">+${d.ohneZeit.length - maxOhne}${kompakt ? '' : ' weitere'}</span>
                 `}
-                ${tage.length === 1 && !d.ganztags.length && !d.ohneZeit.length && html`
+                ${tage.length === 1 && !d.ganztags.length && !d.ohneZeit.length && !d.frueh.length && html`
                   <span class="ohne-mehr">Keine ganztägigen Termine, keine Aufgaben ohne Uhrzeit</span>
                 `}
               </div>
@@ -203,7 +223,7 @@ export function Raster({ tage, modus = 'tag', onTermin, onLeer, onTag }) {
         <div class="raster-koerper" style=${`height:${hoehe}px`}>
           <div class="stunden" aria-hidden="true">
             ${Array.from({ length: 24 - ersteStunde }, (_, i) => ersteStunde + i).map((h) => html`
-              <span class=${h === ersteStunde ? 'erste' : ''} style=${`top:${(h - ersteStunde) * stunde}px`}>${String(h).padStart(2, '0')}:00</span>
+              <span style=${`top:${lage(h * 60)}px`}>${String(h).padStart(2, '0')}:00</span>
             `)}
           </div>
           <div class="raster-waagrecht" ref=${waagrecht}>
@@ -278,7 +298,7 @@ function richteZiehenEin(rahmen, onAblegen) {
     const spalte = unter.closest('.tag-spalte');
     if (spalte) {
       const r = spalte.getBoundingClientRect();
-      let min = beginn() + Math.round((((y - zug.versatzY - r.top) / stunde()) * 60) / SCHRITT) * SCHRITT;
+      let min = beginn() + Math.round((((y - zug.versatzY - r.top - OBEN) / stunde()) * 60) / SCHRITT) * SCHRITT;
       min = Math.max(beginn(), Math.min(1440 - SCHRITT, min));
       return { art: 'zeit', datum: spalte.dataset.datum, min, spalte };
     }
@@ -296,7 +316,7 @@ function richteZiehenEin(rahmen, onAblegen) {
     rahmen.querySelectorAll('.ablage-ziel').forEach((e) => e.classList.remove('ablage-ziel'));
     if (ziel && ziel.art === 'zeit') {
       const v = zug.vorschau;
-      v.style.top = `${((ziel.min - beginn()) / 60) * stunde()}px`;
+      v.style.top = `${OBEN + ((ziel.min - beginn()) / 60) * stunde()}px`;
       v.style.height = `${Math.max(18, (zug.dauer / 60) * stunde())}px`;
       v.textContent = minZuZeit(ziel.min);
       if (v.parentNode !== ziel.spalte) ziel.spalte.appendChild(v);

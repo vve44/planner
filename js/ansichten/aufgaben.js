@@ -1,5 +1,5 @@
 // Aufgaben: die Übersicht nach Tagen ("Geplant"), alle Projekte und Listen ("Listen")
-// und die Ansicht einer einzelnen Liste samt Merkliste.
+// und die Ansicht einer einzelnen Liste samt Merkliste. Listen lassen sich auch als Board zeigen.
 
 import { html, useState } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
@@ -11,6 +11,8 @@ import { useDaten, geheZu } from '../haken.js';
 import * as store from '../store.js';
 import * as aufgaben from '../aufgaben.js';
 import { heute, plusTage } from '../hilfen.js';
+import * as kanban from '../kanban.js';
+import { Board } from './kanban.js';
 
 // Merkt sich, welche der beiden Ansichten zuletzt offen war.
 let gemerkteAnsicht = 'geplant';
@@ -200,6 +202,35 @@ function ListenInhalt({ projekt }) {
     setEntwurf('');
   };
 
+  const ansicht = kanban.ansichtVon(projekt);
+  const kopf = html`
+    <div class="leiste">
+      <p class="text-leise">
+        ${kategorieDa
+          ? html`<i class="farb-tupfer" style=${`display:inline-block;margin-right:8px;background:${kategorie.farbe}`}></i>${kategorie.name}`
+          : 'Ohne Kategorie'}
+      </p>
+      <button class="knopf-text" type="button" onClick=${() => setBearbeiten(true)}>Bearbeiten</button>
+    </div>
+    <div class="wahl" role="group" aria-label="Ansicht der Liste">
+      <button type="button" class=${ansicht === 'liste' ? 'aktiv' : ''} aria-pressed=${ansicht === 'liste'}
+        onClick=${() => store.aendern(projekt.id, { ansicht: 'liste' })}>Liste</button>
+      <button type="button" class=${ansicht === 'board' ? 'aktiv' : ''} aria-pressed=${ansicht === 'board'}
+        onClick=${() => store.aendern(projekt.id, { ansicht: 'board' })}>Board</button>
+    </div>
+  `;
+
+  // Als Board: Kopf fest, darunter die Spalten. Die Seite selbst scrollt dann nicht.
+  if (ansicht === 'board') {
+    return html`
+      <div class="board-seite">
+        <div class="board-kopf">${kopf}</div>
+        <${Board} projekt=${projekt} />
+        ${bearbeiten && html`<${ProjektBlatt} projekt=${projekt} onSchliessen=${() => setBearbeiten(false)} />`}
+      </div>
+    `;
+  }
+
   return html`
     <div class="seite">
       ${projekt.istMerkliste ? html`
@@ -208,16 +239,7 @@ function ListenInhalt({ projekt }) {
             placeholder="Woran willst du denken?" value=${entwurf} onInput=${(e) => setEntwurf(e.target.value)} />
           <button class="knopf" type="submit" aria-label="Eintrag hinzufügen"><${Icon} name="plus" /></button>
         </form>
-      ` : html`
-        <div class="leiste">
-          <p class="text-leise">
-            ${kategorieDa
-              ? html`<i class="farb-tupfer" style=${`display:inline-block;margin-right:8px;background:${kategorie.farbe}`}></i>${kategorie.name}`
-              : 'Ohne Kategorie'}
-          </p>
-          <button class="knopf-text" type="button" onClick=${() => setBearbeiten(true)}>Bearbeiten</button>
-        </div>
-      `}
+      ` : kopf}
 
       ${offene.length ? html`
         <ul class="gruppe">

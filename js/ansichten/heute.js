@@ -1,6 +1,6 @@
 // Tagesbereich: der Stand des heutigen Tages.
-// Von oben nach unten: Termine, Tagesroutinen, Habits, Überfälliges, Aufgaben für heute,
-// Vorschläge aus den Pools. Die Zyklusphase kommt mit einer späteren Etappe dazu.
+// Von oben nach unten: Termine, Tagesroutinen, Zyklusphase, Habits, Überfälliges,
+// Aufgaben für heute, Vorschläge aus den Pools.
 
 import { html, useState } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
@@ -18,11 +18,9 @@ import * as termine from '../termine.js';
 import * as habits from '../habits.js';
 import { TerminBlatt } from '../bausteine/termin-blatt.js';
 import { HabitZeile } from '../bausteine/habit-teile.js';
+import { ZyklusHeute } from './zyklus.js';
 import { heute, istInstalliert, vorTagen, tagLesbar, dauerLesbar, jetztMin } from '../hilfen.js';
 
-const SPAETER = [
-  { icon: 'droplet', name: 'Zyklusphase', etappe: 7 },
-];
 const TERMIN_FARBE = '#7ba6a5';
 
 export function Heute() {
@@ -41,6 +39,7 @@ export function Heute() {
 
       <${TermineHeute} tag=${tag} />
       <${Tagesroutinen} tag=${tag} />
+      <${ZyklusHeute} tag=${tag} />
       <${HabitsHeute} tag=${tag} />
 
       <${AufgabenGruppe} titel="Überfällig" liste=${ueberfaellig} warnung=${true} zeigeDatum=${true} mitMorgen=${true} />
@@ -48,15 +47,6 @@ export function Heute() {
         leerText="Für heute ist nichts geplant. Mit dem Plus legst du eine Aufgabe an." />
 
       <${Vorschlaege} tag=${tag} />
-
-      <section class="abschnitt">
-        <h2>Kommt noch dazu</h2>
-        <ul class="spaeter-liste">
-          ${SPAETER.map((s) => html`
-            <li><${Icon} name=${s.icon} groesse=${16} /> ${s.name}, Etappe ${s.etappe}</li>
-          `)}
-        </ul>
-      </section>
 
       <button class="knopf-plus" type="button" aria-label="Aufgabe für heute anlegen"
         onClick=${() => oeffneAufgabe({ vorgaben: { plandatum: tag } })}>
