@@ -33,7 +33,7 @@ export function AufgabeZeile({ aufgabe, zeigeDatum = false, zeigeListe = true, m
   };
 
   return html`
-    <li class=${`aufgabe ${erledigt ? 'erledigt' : ''}`}>
+    <li class=${`aufgabe ${erledigt ? 'erledigt' : ''}`} data-lang=${`aufgabe:${aufgabe.id}`}>
       <div class="aufgabe-zeile">
         <button class="haken" type="button" aria-pressed=${erledigt}
           aria-label=${erledigt ? `${aufgabe.titel} wieder öffnen` : `${aufgabe.titel} abhaken`}
@@ -110,11 +110,12 @@ export function AufgabeZeile({ aufgabe, zeigeDatum = false, zeigeListe = true, m
 }
 
 // Mehrere Aufgaben als Gruppe mit Überschrift.
-export function AufgabenGruppe({ titel, liste, warnung = false, leerText = null, ...optionen }) {
+//   kopfLang – Merkmal für langes Drücken auf die Überschrift (Bereiche im Tab „Heute“)
+export function AufgabenGruppe({ titel, liste, warnung = false, leerText = null, kopfLang = null, ...optionen }) {
   if (!liste.length && !leerText) return null;
   return html`
     <section class="abschnitt">
-      <div class="abschnitt-kopf">
+      <div class="abschnitt-kopf" data-lang=${kopfLang}>
         <h2 class=${warnung ? 'warnung' : ''}>${titel}</h2>
         ${liste.length > 0 && html`<span>${liste.length}</span>`}
       </div>

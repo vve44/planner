@@ -11,10 +11,10 @@ const zahl = (n) => n.toLocaleString('de-DE');
 const mehrzahl = (anzahl, eins, viele) => `${anzahl} ${anzahl === 1 ? eins : viele}`;
 
 // Schmale Zeile ganz oben im Tab „Heute“. Antippen öffnet den Garten.
-export function LevelZeile() {
+export function LevelZeile({ lang = null }) {
   const s = punkte.stand();
   return html`
-    <button class="level-zeile" type="button" onClick=${() => geheZu('garten')}
+    <button class="level-zeile" type="button" data-lang=${lang} onClick=${() => geheZu('garten')}
       aria-label=${`Level ${s.level}, ${s.imLevel} von ${s.noetig} EP bis Level ${s.level + 1}. Garten öffnen`}>
       <span class="level-icon"><${Icon} name="sprout" groesse=${19} /></span>
       <span class="level-mitte">

@@ -3,6 +3,7 @@
 import { html, useState, useEffect, useRef } from '../../bibliothek/preact-htm.js';
 import { Blatt, melde, waehle } from './fenster.js';
 import { Icon } from './icon.js';
+import { loescheTermin } from './loeschen.js';
 import { AbstandWahl } from './felder.js';
 import * as store from '../store.js';
 import * as termine from '../termine.js';
@@ -103,30 +104,7 @@ export function TerminBlatt({ offen, onSchliessen }) {
   };
 
   const loeschen = async () => {
-    let wahl = 'alle';
-    if (vorhanden.wiederholung && offen.start) {
-      const tag = tagLesbar(offen.start);
-      const wann = ['Heute', 'Morgen', 'Gestern'].includes(tag) ? tag.toLowerCase() : `am ${tag}`;
-      wahl = await waehle({
-        titel: 'Wiederkehrenden Termin löschen',
-        text: `Soll nur der Termin ${wann} entfallen, oder die ganze Reihe?`,
-        optionen: [
-          { wert: 'einer', name: 'Nur diesen Termin' },
-          { wert: 'alle', name: 'Alle Termine der Reihe', art: 'gefahr' },
-        ],
-      });
-      if (!wahl) return;
-    }
-    let zurueck;
-    if (wahl === 'einer') {
-      zurueck = termine.loescheVorkommen(vorhanden, offen.start);
-    } else {
-      const id = vorhanden.id;
-      store.loeschen(id);
-      zurueck = () => store.wiederherstellen(id);
-    }
-    onSchliessen();
-    melde(`„${vorhanden.titel}“ gelöscht`, { aktion: 'Rückgängig', beiAktion: zurueck });
+    if (await loescheTermin(vorhanden, offen.start || null)) onSchliessen();
   };
 
   const fuss = html`

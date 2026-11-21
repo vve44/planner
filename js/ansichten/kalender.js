@@ -42,6 +42,8 @@ export function Kalender() {
   const ansicht = store.einstellung('kalender.ansicht', 'tag');
   // Wochenansicht: alle Tage auf einen Blick (Standard) oder breitere Spalten zum seitlichen Scrollen.
   const wocheBreit = store.einstellung('kalender.wocheBreit', false) === true;
+  // Tagesansicht: kleine Stunden (Standard) oder groß wie bis Version 9.1.0.
+  const tagGross = store.einstellung('kalender.tagGross', false) === true;
   const tag0 = heute();
 
   const setDatum = (d) => { gemerkterTag = d; setDatumRoh(d); };
@@ -114,6 +116,13 @@ export function Kalender() {
               <${Icon} name=${wocheBreit ? 'zoom-out' : 'zoom-in'} groesse=${21} />
             </button>
           `}
+          ${ansicht === 'tag' && html`
+            <button class="kal-zoom" type="button" aria-pressed=${tagGross}
+              aria-label=${tagGross ? 'Stunden kleiner zeigen' : 'Stunden größer zeigen'}
+              onClick=${() => store.setzeEinstellung('kalender.tagGross', !tagGross)}>
+              <${Icon} name=${tagGross ? 'zoom-out' : 'zoom-in'} groesse=${21} />
+            </button>
+          `}
           <button class="knopf-rund" type="button" aria-label="Vor blättern" onClick=${() => blaettere(1)}>
             <${Icon} name="chevron-right" />
           </button>
@@ -127,7 +136,7 @@ export function Kalender() {
         `}
       </div>
 
-      ${ansicht === 'tag' && html`<${Raster} key="tag" tage=${[datum]} modus="tag" onTermin=${oeffneTermin} onLeer=${neuerTermin} />`}
+      ${ansicht === 'tag' && html`<${Raster} key="tag" tage=${[datum]} modus="tag" eng=${!tagGross} onTermin=${oeffneTermin} onLeer=${neuerTermin} />`}
       ${ansicht === 'woche' && html`
         <${Raster} key="woche" tage=${woche} modus=${wocheBreit ? 'breit' : 'kompakt'} onTermin=${oeffneTermin} onLeer=${neuerTermin}
           onTag=${(tag) => { setDatum(tag); setAnsicht('tag'); }} />
@@ -167,7 +176,8 @@ function TagesListe({ zeilen, onTermin }) {
         const fertig = z.art === 'aufgabe' && Boolean(z.a.erledigtAm);
         const kategorie = z.art === 'termin' && z.v.termin.kategorieId ? store.hole(z.v.termin.kategorieId) : null;
         return html`
-          <li key=${z.art === 'termin' ? `${z.v.termin.id}-${z.v.start}` : z.a.id}>
+          <li key=${z.art === 'termin' ? `${z.v.termin.id}-${z.v.start}` : z.a.id}
+            data-lang=${z.art === 'termin' ? `termin:${z.v.termin.id}:${z.v.start}` : `aufgabe:${z.a.id}`}>
             <button type="button" class=${`agenda-zeile ${fertig ? 'erledigt' : ''}`}
               onClick=${() => (z.art === 'termin' ? onTermin(z.v) : oeffneAufgabe({ id: z.a.id }))}>
               <span class="agenda-zeit">${z.zeit}</span>

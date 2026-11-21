@@ -4,7 +4,9 @@
 import { html, useState } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
 import { IconWahl } from '../bausteine/icon-wahl.js';
-import { Blatt, melde } from '../bausteine/fenster.js';
+import { Blatt, melde, oeffneBlatt } from '../bausteine/fenster.js';
+import { loescheEinfach } from '../bausteine/loeschen.js';
+import { registriere } from '../bausteine/lang-druck.js';
 import { useDaten } from '../haken.js';
 import * as store from '../store.js';
 import * as tagesroutinen from '../tagesroutinen.js';
@@ -54,7 +56,7 @@ export function Tagesroutinen() {
         `}
         <ul class="gruppe">
           ${liste.map((r, index) => html`
-            <li class="zeile" key=${r.id}>
+            <li class="zeile" key=${r.id} data-lang=${sortieren ? null : `tagesroutine:${r.id}`}>
               <button class="zeile-haupt" type="button" disabled=${sortieren} onClick=${() => setOffen(r.id)}>
                 <span class="listen-icon"><${Icon} name=${r.icon || 'sun'} groesse=${20} /></span>
                 <span class="zeile-text"><strong>${r.titel}</strong></span>
@@ -80,6 +82,8 @@ export function Tagesroutinen() {
   `;
 }
 
+registriere('tagesroutine', { bearbeiten: (r) => oeffneBlatt((zu) => html`<${RoutineBlatt} id=${r.id} onSchliessen=${zu} />`) });
+
 function RoutineBlatt({ id, onSchliessen }) {
   const routine = store.hole(id);
   const [titel, setTitel] = useState(routine.titel);
@@ -97,10 +101,8 @@ function RoutineBlatt({ id, onSchliessen }) {
     onSchliessen();
   };
 
-  const loeschen = () => {
-    store.loeschen(id);
-    onSchliessen();
-    melde(`„${routine.titel}“ gelöscht`, { aktion: 'Rückgängig', beiAktion: () => store.wiederherstellen(id) });
+  const loeschen = async () => {
+    if (await loescheEinfach(routine)) onSchliessen();
   };
 
   const fuss = html`<button class="knopf breit" type="button" onClick=${speichern}>Änderungen speichern</button>`;

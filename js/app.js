@@ -4,13 +4,13 @@ import { html, render, useState, useEffect, useRef } from '../bibliothek/preact-
 import * as store from './store.js';
 import * as aufgaben from './aufgaben.js';
 import { useDaten, useRoute, geheZu } from './haken.js';
-import { datumLang } from './hilfen.js';
 import { Icon } from './bausteine/icon.js';
 import { Dienste, melde } from './bausteine/fenster.js';
+import { richteEin as richteLangDruckEin } from './bausteine/lang-druck.js';
 import { BackupDialoge } from './bausteine/backup-dialoge.js';
 import { AufgabenFenster } from './bausteine/aufgabe-blatt.js';
 import { starteOfflineBetrieb, abonniereUpdate, updateBereit, uebernimmUpdate } from './aktualisierung.js';
-import { Heute } from './ansichten/heute.js';
+import { Heute, HeuteKopf } from './ansichten/heute.js';
 import { Kalender } from './ansichten/kalender.js';
 import { Aufgaben, Liste, Merkliste } from './ansichten/aufgaben.js';
 import { Uebersicht } from './ansichten/uebersicht.js';
@@ -139,10 +139,11 @@ function App() {
             <${Icon} name="chevron-left" groesse=${26} />
           </button>
         `}
-        <div class="kopf-text">
-          <h1>${titel}</h1>
-          ${route.name === 'heute' && html`<p>${datumLang()}</p>`}
-        </div>
+        ${route.name === 'heute' ? html`<${HeuteKopf} teil=${route.teil} />` : html`
+          <div class="kopf-text">
+            <h1>${titel}</h1>
+          </div>
+        `}
       </div>
     </header>
 
@@ -203,6 +204,8 @@ async function starte() {
     });
   });
   punkte.starte();
+  // Langes Drücken auf Einträge öffnet ihr Menü (Bearbeiten, Löschen).
+  richteLangDruckEin();
   document.documentElement.dataset.schrift = gewaehlteSchrift();
   richteBildschirmEin();
 

@@ -3,6 +3,7 @@
 import { html, useState, useEffect, useRef } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
 import { Blatt, melde, waehle } from '../bausteine/fenster.js';
+import { loescheAufgabe } from '../bausteine/loeschen.js';
 import { oeffneAufgabe } from '../bausteine/aufgabe-blatt.js';
 import { richteKartenZiehenEin } from '../bausteine/kanban-ziehen.js';
 import * as store from '../store.js';
@@ -17,13 +18,22 @@ function Karte({ aufgabe, projekt, spalte }) {
   const unter = aufgaben.fortschritt(aufgabe);
   const ueberfaellig = aufgaben.istUeberfaellig(aufgabe);
 
-  const verschiebeNach = async () => {
+  // Menü der Karte: in eine andere Spalte verschieben, bearbeiten oder löschen.
+  // (Langes Drücken zieht im Board die Karte, deshalb stehen diese Wege hier.)
+  const menue = async () => {
     const andere = kanban.spalten(projekt).filter((s) => s.id !== spalte.id);
-    const ziel = await waehle({
-      titel: `„${aufgabe.titel}“ verschieben nach`,
-      optionen: andere.map((s) => ({ wert: s.id, name: s.name })),
+    const wahl = await waehle({
+      titel: aufgabe.titel,
+      optionen: [
+        ...andere.map((s) => ({ wert: `spalte:${s.id}`, name: `Nach „${s.name}“ verschieben` })),
+        { wert: 'bearbeiten', name: 'Bearbeiten' },
+        { wert: 'loeschen', name: 'Löschen', art: 'gefahr' },
+      ],
     });
-    if (ziel) kanban.verschiebe(aufgabe.id, store.hole(projekt.id), ziel);
+    if (!wahl) return;
+    if (wahl === 'bearbeiten') oeffneAufgabe({ id: aufgabe.id });
+    else if (wahl === 'loeschen') await loescheAufgabe(aufgabe);
+    else kanban.verschiebe(aufgabe.id, store.hole(projekt.id), wahl.slice(7));
   };
 
   return html`
@@ -43,8 +53,8 @@ function Karte({ aufgabe, projekt, spalte }) {
           </span>
         `}
       </button>
-      <button class="k-mehr" type="button" aria-label=${`${aufgabe.titel} in eine andere Spalte verschieben`} onClick=${verschiebeNach}>
-        <${Icon} name="arrow-right-left" groesse=${17} />
+      <button class="k-mehr" type="button" aria-label=${`Menü zu ${aufgabe.titel}: verschieben, bearbeiten, löschen`} onClick=${menue}>
+        <${Icon} name="ellipsis" groesse=${18} />
       </button>
     </li>
   `;

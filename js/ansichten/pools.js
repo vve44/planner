@@ -5,7 +5,9 @@ import { html, useState } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
 import { IconWahl } from '../bausteine/icon-wahl.js';
 import { DauerWahl, AbstandWahl } from '../bausteine/felder.js';
-import { Blatt, melde } from '../bausteine/fenster.js';
+import { Blatt, melde, oeffneBlatt } from '../bausteine/fenster.js';
+import { loeschePool, loescheEinfach } from '../bausteine/loeschen.js';
+import { registriere } from '../bausteine/lang-druck.js';
 import { useDaten, geheZu } from '../haken.js';
 import * as store from '../store.js';
 import * as pools from '../pools.js';
@@ -48,7 +50,7 @@ export function Pools() {
           const teile = [eigene.length === 1 ? '1 Eintrag' : `${eigene.length} Einträge`];
           if (an) teile.push(an === 1 ? '1 steht an' : `${an} stehen an`);
           return html`
-            <li class="zeile" key=${p.id}>
+            <li class="zeile" key=${p.id} data-lang=${`pool:${p.id}`}>
               <button class="zeile-haupt" type="button" onClick=${() => geheZu(`pool/${p.id}`)}>
                 <span class="listen-icon"><${Icon} name=${p.icon || 'repeat'} groesse=${20} /></span>
                 <span class="zeile-text"><strong>${p.name}</strong><span>${teile.join(', ')}</span></span>
@@ -117,7 +119,7 @@ export function Pool({ teil }) {
             const an = pools.stehtAn(e, tag);
             const zuSpaet = e.naechsteFaelligkeit < tag;
             return html`
-              <li class="aufgabe" key=${e.id}>
+              <li class="aufgabe" key=${e.id} data-lang=${`poolEintrag:${e.id}`}>
                 <div class="aufgabe-zeile">
                   <button class="haken" type="button" aria-pressed="false" aria-label=${`${e.titel} als erledigt abhaken`} onClick=${() => erledigt(e)}>
                     <span class="haken-kreis"></span>
@@ -153,6 +155,11 @@ export function Pool({ teil }) {
 
 // ---------- Pool anlegen und bearbeiten ----------
 
+registriere('pool', { bearbeiten: (p) => oeffneBlatt((zu) => html`<${PoolBlatt} pool=${p} onSchliessen=${zu} />`) });
+registriere('poolEintrag', {
+  bearbeiten: (e) => oeffneBlatt((zu) => html`<${EintragBlatt} pool=${pools.poolVon(e)} offen=${{ id: e.id }} onSchliessen=${zu} />`),
+});
+
 function PoolBlatt({ pool = null, onSchliessen }) {
   const [name, setName] = useState(pool ? pool.name : '');
   const [kategorieId, setKategorieId] = useState(pool ? pool.kategorieId : null);
@@ -177,11 +184,10 @@ function PoolBlatt({ pool = null, onSchliessen }) {
     }
   };
 
-  const loeschen = () => {
-    const zurueck = pools.loeschePool(pool.id);
+  const loeschen = async () => {
+    if (!(await loeschePool(pool))) return;
     onSchliessen();
     geheZu('pools');
-    melde(`„${pool.name}“ gelöscht`, { aktion: 'Rückgängig', beiAktion: zurueck });
   };
 
   const fuss = html`<button class="knopf breit" type="button" onClick=${speichern}>${pool ? 'Änderungen speichern' : 'Pool anlegen'}</button>`;
@@ -247,11 +253,8 @@ function EintragBlatt({ pool, offen, onSchliessen }) {
     onSchliessen();
   };
 
-  const loeschen = () => {
-    const id = vorhanden.id;
-    store.loeschen(id);
-    onSchliessen();
-    melde(`„${vorhanden.titel}“ gelöscht`, { aktion: 'Rückgängig', beiAktion: () => store.wiederherstellen(id) });
+  const loeschen = async () => {
+    if (await loescheEinfach(vorhanden)) onSchliessen();
   };
 
   const fuss = html`<button class="knopf breit" type="button" onClick=${speichern}>${vorhanden ? 'Änderungen speichern' : 'Eintrag anlegen'}</button>`;

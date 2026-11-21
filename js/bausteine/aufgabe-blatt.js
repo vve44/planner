@@ -5,6 +5,7 @@
 import { html, useState, useEffect, useRef } from '../../bibliothek/preact-htm.js';
 import { Blatt, melde, waehle } from './fenster.js';
 import { Icon } from './icon.js';
+import { loescheAufgabe } from './loeschen.js';
 import { IconWahl } from './icon-wahl.js';
 import { PunktListe, DauerWahl, AbstandWahl } from './felder.js';
 import * as store from '../store.js';
@@ -189,21 +190,7 @@ function AufgabeBlatt({ id, vorgaben, beiAngelegt, onSchliessen }) {
   };
 
   const loeschen = async () => {
-    let wahl = 'weiter';
-    if (serie && !vorhanden.erledigtAm) {
-      wahl = await waehle({
-        titel: 'Wiederkehrende Aufgabe löschen',
-        text: 'Soll nur diese eine Aufgabe entfallen, oder soll die ganze Wiederholung enden?',
-        optionen: [
-          { wert: 'weiter', name: 'Nur diese Aufgabe' },
-          { wert: 'beenden', name: 'Ganze Wiederholung beenden', art: 'gefahr' },
-        ],
-      });
-      if (!wahl) return;
-    }
-    const zurueck = aufgaben.loescheAufgabe(vorhanden.id, { serie: wahl });
-    onSchliessen();
-    melde(`„${vorhanden.titel}“ gelöscht`, { aktion: 'Rückgängig', beiAktion: zurueck });
+    if (await loescheAufgabe(vorhanden)) onSchliessen();
   };
 
   const fuss = html`

@@ -3,7 +3,9 @@
 
 import { html, useState, useEffect, useLayoutEffect, useRef } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
-import { Blatt, melde, frage, waehle } from '../bausteine/fenster.js';
+import { Blatt, melde, frage, waehle, oeffneBlatt } from '../bausteine/fenster.js';
+import { loescheNotiz, loescheMesswert } from '../bausteine/loeschen.js';
+import { registriere } from '../bausteine/lang-druck.js';
 import { PunktListe } from '../bausteine/felder.js';
 import { TextAnsicht, formatiere, setzeListeFort } from '../bausteine/notiz-text.js';
 import { PinSperre, PinBlatt } from '../bausteine/pin-teile.js';
@@ -38,7 +40,7 @@ function unterzeile(notiz) {
 function NotizZeile({ notiz }) {
   const gesperrt = notizen.istGesperrt(notiz);
   return html`
-    <li class="zeile">
+    <li class="zeile" data-lang=${`notiz:${notiz.id}`}>
       <button class="zeile-haupt" type="button" onClick=${() => geheZu(`notiz/${notiz.id}`)}>
         <span class="listen-icon"><${Icon} name=${gesperrt ? 'lock' : notiz.art === 'tracker' ? 'chart-line' : 'file-text'} groesse=${20} /></span>
         <span class="zeile-text">
@@ -117,6 +119,12 @@ export function Notizen() {
 }
 
 // Fenster zum Anlegen einer Notiz oder eines Trackers und zum Ändern der Angaben eines Trackers.
+// Langes Drücken: „Bearbeiten“ ändert Titel und Kategorie, bei Messwerten den Eintrag.
+registriere('notiz', { bearbeiten: (n) => oeffneBlatt((zu) => html`<${NotizNeuBlatt} art=${n.art} vorhanden=${n} onSchliessen=${zu} />`) });
+registriere('messwert', {
+  bearbeiten: (m) => oeffneBlatt((zu) => html`<${MesswertBlatt} notiz=${store.hole(m.notizId)} messwert=${m} onSchliessen=${zu} />`),
+});
+
 function NotizNeuBlatt({ art, eltern = null, vorhanden = null, onSchliessen }) {
   const [titel, setTitel] = useState(vorhanden ? vorhanden.titel : '');
   const [kategorieId, setKategorieId] = useState(vorhanden ? vorhanden.kategorieId : null);
@@ -148,7 +156,7 @@ function NotizNeuBlatt({ art, eltern = null, vorhanden = null, onSchliessen }) {
     geheZu(`notiz/${neu.id}`);
   };
 
-  const ueberschrift = vorhanden ? 'Tracker bearbeiten' : tracker ? 'Neuer Messwert-Tracker' : eltern ? 'Neue Unternotiz' : 'Neue Notiz';
+  const ueberschrift = vorhanden ? (tracker ? 'Tracker bearbeiten' : 'Notiz bearbeiten') : tracker ? 'Neuer Messwert-Tracker' : eltern ? 'Neue Unternotiz' : 'Neue Notiz';
   const fuss = html`
     <div class="fuss-stapel">
       ${fehler && html`<p class="fehlertext" role="alert">${fehler}</p>`}
@@ -345,18 +353,7 @@ function Aktionen({ notiz }) {
   };
 
   const loeschen = async () => {
-    const ja = await frage({
-      titel: `„${notiz.titel}“ löschen?`,
-      text: kinder
-        ? `Die Notiz kommt mit ${kinder === 1 ? 'ihrer Unternotiz' : `ihren ${kinder} Unternotizen`} in den Papierkorb und lässt sich 30 Tage lang wiederherstellen.`
-        : 'Sie kommt in den Papierkorb und lässt sich 30 Tage lang wiederherstellen.',
-      ja: 'Löschen',
-      gefahr: true,
-    });
-    if (!ja) return;
-    const zurueck = notizen.loesche(notiz);
-    geheZu(eltern ? `notiz/${eltern.id}` : 'notizen');
-    melde(`„${notiz.titel}“ gelöscht`, { aktion: 'Rückgängig', beiAktion: zurueck });
+    if (await loescheNotiz(notiz)) geheZu(eltern ? `notiz/${eltern.id}` : 'notizen');
   };
 
   return html`
@@ -715,7 +712,7 @@ function Tracker({ notiz }) {
           <div class="abschnitt-kopf"><h2>Einträge</h2><span>${alle.length}</span></div>
           <ul class="gruppe">
             ${liste.map((m) => html`
-              <li class="zeile" key=${m.id}>
+              <li class="zeile" key=${m.id} data-lang=${`messwert:${m.id}`}>
                 <button class="zeile-haupt wert-zeile" type="button" onClick=${() => setOffen(m)}>
                   <span class="zeile-text"><strong>${tagLesbar(m.datum)}</strong></span>
                   <span class="zeile-zahl">${notizen.zahlText(m.wert)}${einheit}</span>
@@ -755,11 +752,8 @@ function MesswertBlatt({ notiz, messwert, onSchliessen }) {
     return null;
   };
 
-  const loeschen = () => {
-    const { datum: d, wert } = messwert;
-    store.entfernen(messwert.id);
-    onSchliessen();
-    melde('Eintrag gelöscht', { aktion: 'Rückgängig', beiAktion: () => notizen.setzeMesswert(notiz, d, wert) });
+  const loeschen = async () => {
+    if (await loescheMesswert(messwert)) onSchliessen();
   };
 
   const fuss = html`

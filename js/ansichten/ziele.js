@@ -3,7 +3,9 @@
 
 import { html, useState } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
-import { Blatt, melde, frage } from '../bausteine/fenster.js';
+import { Blatt, melde, frage, oeffneBlatt } from '../bausteine/fenster.js';
+import { loescheZiel } from '../bausteine/loeschen.js';
+import { registriere } from '../bausteine/lang-druck.js';
 import { AufgabeZeile } from '../bausteine/aufgabe-zeile.js';
 import { oeffneAufgabe } from '../bausteine/aufgabe-blatt.js';
 import { useDaten, geheZu } from '../haken.js';
@@ -35,7 +37,7 @@ function ZielKarte({ ziel }) {
   const frist = ziele.fristText(ziel);
   const anzahlHabits = ziele.habitsVon(ziel).length;
   return html`
-    <li>
+    <li data-lang=${`ziel:${ziel.id}`}>
       <button class=${`ziel-karte ${ziel.erreichtAm ? 'erreicht' : ''}`} type="button" onClick=${() => geheZu(`ziel/${ziel.id}`)}>
         <span class="ziel-kopf">
           <strong>
@@ -103,6 +105,8 @@ export function Ziele() {
 }
 
 // ---------- Ziel anlegen und bearbeiten ----------
+
+registriere('ziel', { bearbeiten: (z) => oeffneBlatt((zu) => html`<${ZielBlatt} ziel=${z} onSchliessen=${zu} />`) });
 
 function ZielBlatt({ ziel = null, onSchliessen }) {
   const [titel, setTitel] = useState(ziel ? ziel.titel : '');
@@ -237,16 +241,7 @@ export function Ziel({ teil }) {
   const angaben = [kategorie ? kategorie.name : null, frist || 'Ohne Zieldatum'].filter(Boolean);
 
   const loeschen = async () => {
-    const ja = await frage({
-      titel: `„${ziel.titel}“ löschen?`,
-      text: 'Das Ziel kommt in den Papierkorb. Die verknüpften Listen, Aufgaben und Habits bleiben erhalten.',
-      ja: 'Löschen',
-      gefahr: true,
-    });
-    if (!ja) return;
-    store.loeschen(ziel.id);
-    geheZu('ziele');
-    melde(`„${ziel.titel}“ gelöscht`, { aktion: 'Rückgängig', beiAktion: () => store.wiederherstellen(ziel.id) });
+    if (await loescheZiel(ziel)) geheZu('ziele');
   };
 
   // Was sich verknüpfen lässt

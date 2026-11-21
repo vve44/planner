@@ -12,8 +12,9 @@ import * as aufgaben from '../aufgaben.js';
 import * as termine from '../termine.js';
 import { heute, jetztMin, minZuZeit, zeitZuMin, wochentagKurz, datumAusText, aufhellen, tagLesbar } from '../hilfen.js';
 
-const STUNDE_GROSS = 56;         // Höhe einer Stunde in Pixeln (Tag und breite 7-Tage-Ansicht)
+const STUNDE_GROSS = 56;         // Höhe einer Stunde in Pixeln (vergrößerter Tag und breite 7-Tage-Ansicht)
 const STUNDE_KLEIN = 44;         // Höhe einer Stunde, wenn alle 7 Tage nebeneinander stehen
+const STUNDE_TAG = 36;           // Höhe einer Stunde in der Tagesansicht (Standard seit 9.2.0: mehr Stunden auf einen Blick)
 export const SPALTE = 108;       // Breite eines Tages in der breiten 7-Tage-Ansicht
 const RASTER_BEGINN = 6 * 60;    // Das Raster beginnt immer um 6 Uhr. Früheres steht als Schild im Tageskopf.
 const OBEN = 10;                 // Freier Rand über der ersten Stundenlinie, damit ihre Uhrzeit Platz hat
@@ -61,6 +62,7 @@ function farbeVon(termin) {
 // ---------- Das Raster ----------
 //   tage      – Liste der Kalendertage
 //   modus     – 'tag' (ein Tag), 'kompakt' (alle Tage passen nebeneinander auf den Bildschirm)
+//   eng       – nur bei 'tag': kleinere Stunden, damit mehr vom Tag auf den Bildschirm passt
 //               oder 'breit' (breitere Spalten, seitlich scrollen)
 //   onTermin  – ein Termin wurde angetippt (Vorkommen)
 //   onLeer    – eine freie Stelle wurde angetippt (Tag, Minute)
@@ -70,7 +72,7 @@ function farbeVon(termin) {
 // senkrecht, in ihm liegt ein Bereich, der nur waagrecht scrollt. So folgt das iPhone
 // je Wischbewegung nur einer Richtung. Der Tageskopf wandert beim seitlichen Scrollen mit.
 
-export function Raster({ tage, modus = 'tag', onTermin, onLeer, onTag }) {
+export function Raster({ tage, modus = 'tag', eng = false, onTermin, onLeer, onTag }) {
   const rahmen = useRef(null);
   const senkrecht = useRef(null);
   const waagrecht = useRef(null);
@@ -80,7 +82,11 @@ export function Raster({ tage, modus = 'tag', onTermin, onLeer, onTag }) {
   const tag0 = heute();
   const breit = modus === 'breit';
   const kompakt = modus === 'kompakt';
-  const stunde = kompakt ? STUNDE_KLEIN : STUNDE_GROSS;
+  const klein = eng && modus === 'tag';
+  const stunde = kompakt ? STUNDE_KLEIN : klein ? STUNDE_TAG : STUNDE_GROSS;
+  // Mindesthöhe eines Blocks und ab wann ein Block nur noch den Titel zeigt (in Pixeln)
+  const minHoehe = kompakt || klein ? 18 : 22;
+  const zweiZeilen = kompakt ? 26 : klein ? 30 : 35;
 
   ablegen.current = (id, ziel) => {
     const aufgabe = store.hole(id);
@@ -112,7 +118,7 @@ export function Raster({ tage, modus = 'tag', onTermin, onLeer, onTag }) {
     const frueh = alle.filter((e) => e.bisMin <= RASTER_BEGINN).sort((x, y) => x.vonMin - y.vonMin);
     const bloecke = ordneAn(
       alle.filter((e) => e.bisMin > RASTER_BEGINN).map((e) => ({ ...e, vonMin: Math.max(e.vonMin, RASTER_BEGINN) })),
-      Math.ceil((24 / stunde) * 60),
+      Math.ceil(((minHoehe + 2) / stunde) * 60),
     );
     return { tag, ganztags, ohneZeit, frueh, bloecke };
   });
@@ -124,11 +130,11 @@ export function Raster({ tage, modus = 'tag', onTermin, onLeer, onTag }) {
 
   const blockStil = (e) => {
     const breite = 100 / e.spalten;
-    const h = Math.max(kompakt ? 18 : 22, ((e.bisMin - e.vonMin) / 60) * stunde - 2);
+    const h = Math.max(minHoehe, ((e.bisMin - e.vonMin) / 60) * stunde - 2);
     return `top:${lage(e.vonMin)}px;height:${h}px;left:calc(${e.spalte * breite}% + 1px);width:calc(${breite}% - ${kompakt ? 2 : 3}px);`;
   };
   // Kurze Blöcke haben nur Platz für eine Zeile: Sie zeigen den Titel ohne Uhrzeit.
-  const istKurz = (e) => ((e.bisMin - e.vonMin) / 60) * stunde - 2 < (kompakt ? 26 : 35);
+  const istKurz = (e) => ((e.bisMin - e.vonMin) / 60) * stunde - 2 < zweiZeilen;
 
   // Drag & Drop einrichten (einmal), Tageskopf mitführen, Jetzt-Linie jede Minute nachführen.
   useEffect(() => {
@@ -149,7 +155,7 @@ export function Raster({ tage, modus = 'tag', onTermin, onLeer, onTag }) {
       waagrecht.current.scrollLeft = breit && index > 0 ? index * SPALTE - 8 : 0;
       if (band.current) band.current.style.transform = `translateX(${-waagrecht.current.scrollLeft}px)`;
     }
-  }, [tage[0], tage.length, modus]);
+  }, [tage[0], tage.length, modus, eng]);
 
   const spaltenStil = breit ? `flex:none;width:${SPALTE}px;` : 'flex:1;min-width:0;';
   const bandStil = breit ? `width:${tage.length * SPALTE}px;` : 'width:100%;';
@@ -163,7 +169,7 @@ export function Raster({ tage, modus = 'tag', onTermin, onLeer, onTag }) {
   };
 
   return html`
-    <div class=${`raster-rahmen ${modus}`} ref=${rahmen} data-stunde=${stunde} data-beginn=${beginn} style=${`--stunde:${stunde}px;--raster-oben:${OBEN}px`}>
+    <div class=${`raster-rahmen ${modus} ${klein ? 'eng' : ''}`} ref=${rahmen} data-stunde=${stunde} data-beginn=${beginn} style=${`--stunde:${stunde}px;--raster-oben:${OBEN}px`}>
       <div class="raster-kopf">
         <div class="raster-ecke"></div>
         <div class="kopf-fenster">
@@ -178,14 +184,14 @@ export function Raster({ tage, modus = 'tag', onTermin, onLeer, onTag }) {
                   </button>
                 `}
                 ${d.ganztags.map((v) => html`
-                  <button type="button" class="ganztag-chip" key=${`${v.termin.id}-${v.start}`}
+                  <button type="button" class="ganztag-chip" key=${`${v.termin.id}-${v.start}`} data-lang=${`termin:${v.termin.id}:${v.start}`}
                     style=${`background:${aufhellen(farbeVon(v.termin), 0.55)};border-color:${farbeVon(v.termin)}`}
                     onClick=${() => onTermin(v)}>
                     ${v.termin.titel}
                   </button>
                 `)}
                 ${d.frueh.map((e) => (e.art === 'termin' ? html`
-                  <button type="button" class="ganztag-chip frueh" key=${`${e.v.termin.id}-${e.v.start}`}
+                  <button type="button" class="ganztag-chip frueh" key=${`${e.v.termin.id}-${e.v.start}`} data-lang=${`termin:${e.v.termin.id}:${e.v.start}`}
                     style=${`background:${aufhellen(farbeVon(e.v.termin), 0.55)};border-color:${farbeVon(e.v.termin)}`}
                     aria-label=${`${e.v.termin.titel}, ${termine.zeitText(e.v, d.tag)}`}
                     onClick=${() => onTermin(e.v)}>
@@ -237,6 +243,7 @@ export function Raster({ tage, modus = 'tag', onTermin, onLeer, onTag }) {
                       const farbe = farbeVon(e.v.termin);
                       return html`
                         <button type="button" class=${`block termin ${kurz ? 'kurz' : ''}`} key=${`${e.v.termin.id}-${e.v.start}`}
+                          data-lang=${`termin:${e.v.termin.id}:${e.v.start}`}
                           style=${`${blockStil(e)}background:${aufhellen(farbe, 0.6)};border-left-color:${farbe};`}
                           aria-label=${`${e.v.termin.titel}, ${termine.zeitText(e.v, d.tag)}`}
                           onClick=${() => onTermin(e.v)}>

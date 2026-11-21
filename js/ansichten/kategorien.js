@@ -4,7 +4,9 @@
 import { html, useState } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
 import { IconWahl } from '../bausteine/icon-wahl.js';
-import { Blatt, melde } from '../bausteine/fenster.js';
+import { Blatt, melde, oeffneBlatt } from '../bausteine/fenster.js';
+import { loescheEinfach } from '../bausteine/loeschen.js';
+import { registriere } from '../bausteine/lang-druck.js';
 import { useDaten } from '../haken.js';
 import * as store from '../store.js';
 import { KATEGORIE_FARBEN } from '../typen.js';
@@ -61,7 +63,7 @@ export function Kategorien() {
 
       <ul class="gruppe">
         ${liste.map((k, index) => html`
-          <li class="zeile" key=${k.id}>
+          <li class="zeile" key=${k.id} data-lang=${sortieren ? null : `kategorie:${k.id}`}>
             <button class="zeile-haupt" type="button" disabled=${sortieren} onClick=${() => setOffen({ id: k.id })}>
               <span class="farb-marke" style=${`background:${k.farbe};color:${farbeDarauf(k.farbe)}`}>
                 <${Icon} name=${k.icon} groesse=${19} />
@@ -96,6 +98,8 @@ export function Kategorien() {
   `;
 }
 
+registriere('kategorie', { bearbeiten: (k) => oeffneBlatt((zu) => html`<${KategorieBlatt} offen=${{ id: k.id }} anzahl=${0} onSchliessen=${zu} />`) });
+
 function KategorieBlatt({ offen, anzahl, onSchliessen }) {
   const vorhanden = offen.id ? store.hole(offen.id) : null;
   const [name, setName] = useState(vorhanden ? vorhanden.name : '');
@@ -119,11 +123,8 @@ function KategorieBlatt({ offen, anzahl, onSchliessen }) {
     onSchliessen();
   };
 
-  const loeschen = () => {
-    const id = vorhanden.id;
-    store.loeschen(id);
-    onSchliessen();
-    melde(`„${vorhanden.name}“ gelöscht`, { aktion: 'Rückgängig', beiAktion: () => store.wiederherstellen(id) });
+  const loeschen = async () => {
+    if (await loescheEinfach(vorhanden)) onSchliessen();
   };
 
   const fuss = html`

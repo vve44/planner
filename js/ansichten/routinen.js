@@ -5,7 +5,9 @@ import { html, useState } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
 import { IconWahl } from '../bausteine/icon-wahl.js';
 import { PunktListe, DauerWahl } from '../bausteine/felder.js';
-import { Blatt, melde } from '../bausteine/fenster.js';
+import { Blatt, melde, oeffneBlatt } from '../bausteine/fenster.js';
+import { loescheEinfach } from '../bausteine/loeschen.js';
+import { registriere } from '../bausteine/lang-druck.js';
 import { oeffneAufgabe } from '../bausteine/aufgabe-blatt.js';
 import { useDaten } from '../haken.js';
 import * as store from '../store.js';
@@ -49,7 +51,7 @@ export function Routinen() {
           if (r.unteraufgaben.length) teile.push(r.unteraufgaben.length === 1 ? '1 Unteraufgabe' : `${r.unteraufgaben.length} Unteraufgaben`);
           if (r.dauerMin) teile.push(dauerLesbar(r.dauerMin));
           return html`
-            <li class="zeile" key=${r.id}>
+            <li class="zeile" key=${r.id} data-lang=${`routine:${r.id}`}>
               <button class="zeile-haupt" type="button" onClick=${() => setOffen({ id: r.id })}>
                 <span class="listen-icon"><${Icon} name=${r.icon || 'clipboard-list'} groesse=${20} /></span>
                 <span class="zeile-text">
@@ -71,6 +73,8 @@ export function Routinen() {
     </div>
   `;
 }
+
+registriere('routine', { bearbeiten: (r) => oeffneBlatt((zu) => html`<${RoutineBlatt} offen=${{ id: r.id }} onSchliessen=${zu} />`) });
 
 function RoutineBlatt({ offen, onSchliessen }) {
   const vorhanden = offen.id ? store.hole(offen.id) : null;
@@ -99,11 +103,8 @@ function RoutineBlatt({ offen, onSchliessen }) {
     onSchliessen();
   };
 
-  const loeschen = () => {
-    const id = vorhanden.id;
-    store.loeschen(id);
-    onSchliessen();
-    melde(`„${vorhanden.titel}“ gelöscht`, { aktion: 'Rückgängig', beiAktion: () => store.wiederherstellen(id) });
+  const loeschen = async () => {
+    if (await loescheEinfach(vorhanden)) onSchliessen();
   };
 
   const fuss = html`

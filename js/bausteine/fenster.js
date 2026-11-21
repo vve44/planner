@@ -1,6 +1,6 @@
 // Fenster und Hinweise: Blatt von unten, Rückfrage, kurze Meldung.
 
-import { html, useState, useEffect } from '../../bibliothek/preact-htm.js';
+import { html, useState, useEffect, Fragment } from '../../bibliothek/preact-htm.js';
 import { Icon } from './icon.js';
 
 // ---------- Blatt: schiebt sich von unten ins Bild ----------
@@ -34,7 +34,14 @@ export function Blatt({ titel, onSchliessen, fuss, children }) {
 
 let setzeFrage = null;
 let setzeMeldung = null;
+let setzeBlatt = null;
 let meldungUhr = null;
+
+// Öffnet ein Blatt von überall aus, zum Beispiel aus dem Menü beim langen Drücken.
+//   zeichne(onSchliessen) liefert das Blatt.
+export function oeffneBlatt(zeichne) {
+  if (setzeBlatt) setzeBlatt({ zeichne, schluessel: Date.now() });
+}
 
 // Lässt zwischen mehreren Möglichkeiten wählen. Antwort: der "wert" der gewählten
 // Möglichkeit oder null bei "Abbrechen".
@@ -64,11 +71,13 @@ export function melde(text, { aktion = null, beiAktion = null, dauer = 5000 } = 
 export function Dienste() {
   const [offeneFrage, setOffeneFrage] = useState(null);
   const [meldung, setMeldung] = useState(null);
+  const [blatt, setBlatt] = useState(null);
 
   useEffect(() => {
     setzeFrage = setOffeneFrage;
     setzeMeldung = setMeldung;
-    return () => { setzeFrage = null; setzeMeldung = null; };
+    setzeBlatt = setBlatt;
+    return () => { setzeFrage = null; setzeMeldung = null; setzeBlatt = null; };
   }, []);
 
   const antworte = (wert) => {
@@ -77,6 +86,7 @@ export function Dienste() {
   };
 
   return html`
+    ${blatt && html`<${Fragment} key=${blatt.schluessel}>${blatt.zeichne(() => setBlatt(null))}</${Fragment}>`}
     ${offeneFrage && html`
       <div class="frage-hintergrund">
         <section class="frage" role="alertdialog" aria-modal="true" aria-label=${offeneFrage.titel}>

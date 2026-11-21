@@ -153,9 +153,20 @@ export function wochentagKurz(text) {
   return FORMAT_WOCHENTAG_KURZ.format(datumAusText(text)).replace('.', '');
 }
 
-// "Samstag, 14. November"
+// "Samstag, 14. November" (mit Jahr, wenn es nicht das laufende ist)
 export function tagAusfuehrlich(text) {
-  return FORMAT_LANG.format(datumAusText(text));
+  const d = datumAusText(text);
+  const lang = FORMAT_LANG.format(d);
+  return d.getFullYear() === new Date().getFullYear() ? lang : `${lang} ${d.getFullYear()}`;
+}
+
+// Für Sätze: "heute", "gestern", "morgen" oder "am Di, 24. Nov."
+export function tagImSatz(text) {
+  const abstand = tageZwischen(heute(), text);
+  if (abstand === 0) return 'heute';
+  if (abstand === 1) return 'morgen';
+  if (abstand === -1) return 'gestern';
+  return `am ${tagLesbar(text)}`;
 }
 
 // "16. – 22. Nov. 2026"

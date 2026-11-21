@@ -6,7 +6,7 @@ import { Icon } from './icon.js';
 import { Blatt, melde } from './fenster.js';
 import { geheZu } from '../haken.js';
 import * as habits from '../habits.js';
-import { heute, tagAusfuehrlich, tagLesbar } from '../hilfen.js';
+import { heute, tagAusfuehrlich, tagLesbar, tagImSatz } from '../hilfen.js';
 
 // Kreis mit Fortschritt für Habits mit Menge. Ist das Tagesziel erreicht, wird er golden.
 function MengenKreis({ anteil }) {
@@ -29,7 +29,8 @@ function MengenKreis({ anteil }) {
 //   tag            – für welchen Tag die Zeile gilt (normalerweise heute)
 //   zeigeFrequenz  – die Frequenz mit nennen (im Habit-Bereich)
 //   ohneLink       – Name öffnet nicht die Statistikseite (auf der Seite selbst)
-export function HabitZeile({ habit, tag = heute(), zeigeFrequenz = false, ohneLink = false }) {
+//   nurLesen       – nichts abhaken (kommende Tage im Tab „Heute“)
+export function HabitZeile({ habit, tag = heute(), zeigeFrequenz = false, ohneLink = false, nurLesen = false }) {
   const [tagOffen, setTagOffen] = useState(false);
   const lage = habits.lageAm(habit, tag);
   const erledigt = lage === 'erledigt';
@@ -37,6 +38,7 @@ export function HabitZeile({ habit, tag = heute(), zeigeFrequenz = false, ohneLi
   const stand = habits.periodenStand(habit, tag);
   const s = habits.streak(habit, tag);
   const gedaempft = lage === 'ausgelassen' || lage === 'zielErreicht' || lage === 'ruht' || lage === 'frei';
+  const istHeute = tag === heute();
 
   const haken = () => {
     if (habit.menge) setTagOffen(true);
@@ -47,7 +49,7 @@ export function HabitZeile({ habit, tag = heute(), zeigeFrequenz = false, ohneLi
     const an = lage !== 'ausgelassen';
     habits.setzeAusgelassen(habit, tag, an);
     if (an) {
-      melde(`„${habit.name}“ für heute ausgelassen. Die Streak bleibt.`, {
+      melde(`„${habit.name}“ ${istHeute ? 'für heute' : tagImSatz(tag)} ausgelassen. Die Streak bleibt.`, {
         aktion: 'Rückgängig',
         beiAktion: () => habits.setzeAusgelassen(habit, tag, false),
       });
@@ -55,12 +57,12 @@ export function HabitZeile({ habit, tag = heute(), zeigeFrequenz = false, ohneLi
   };
 
   let hinweis = null;
-  if (lage === 'ausgelassen') hinweis = 'Heute ausgelassen';
+  if (lage === 'ausgelassen') hinweis = istHeute ? 'Heute ausgelassen' : 'Ausgelassen';
   else if (lage === 'zielErreicht') hinweis = stand.wort === 'diese Woche' ? 'Wochenziel erreicht' : 'Monatsziel erreicht';
   else if (lage === 'ruht') hinweis = habits.istPausiert(habit) ? 'Pausiert' : 'Ruht im Urlaub';
   else if (lage === 'frei') {
     const dran = habits.naechstesMal(habit, tag);
-    hinweis = dran ? `Wieder dran: ${tagLesbar(dran)}` : 'Heute nicht dran';
+    hinweis = dran ? `Wieder dran: ${tagLesbar(dran)}` : istHeute ? 'Heute nicht dran' : 'Nicht dran';
   }
 
   const inhalt = html`
@@ -78,13 +80,13 @@ export function HabitZeile({ habit, tag = heute(), zeigeFrequenz = false, ohneLi
   `;
 
   return html`
-    <li class=${`aufgabe habit ${erledigt ? 'erledigt' : ''} ${gedaempft ? 'gedaempft' : ''}`}>
+    <li class=${`aufgabe habit ${erledigt ? 'erledigt' : ''} ${gedaempft ? 'gedaempft' : ''}`} data-lang=${`habit:${habit.id}`}>
       <div class="aufgabe-zeile">
         <button class="haken" type="button" aria-pressed=${erledigt}
           aria-label=${habit.menge
             ? `${habit.name}: Menge eintragen, bisher ${habits.mengeText(habit, wert)}`
             : erledigt ? `${habit.name}: Häkchen zurücknehmen` : `${habit.name} abhaken`}
-          onClick=${haken}>
+          disabled=${nurLesen} onClick=${haken}>
           ${habit.menge
             ? html`<${MengenKreis} anteil=${wert / habits.tagesziel(habit)} />`
             : html`<span class="haken-kreis">${erledigt && html`<${Icon} name="check" groesse=${15} strich=${2.6} />`}</span>`}
@@ -98,9 +100,9 @@ export function HabitZeile({ habit, tag = heute(), zeigeFrequenz = false, ohneLi
             </button>
           `}
 
-        ${(lage === 'offen' || lage === 'ausgelassen') && html`
+        ${!nurLesen && (lage === 'offen' || lage === 'ausgelassen') && html`
           <span class="aufgabe-neben">
-            <button type="button" aria-label=${lage === 'ausgelassen' ? `${habit.name}: Auslassen zurücknehmen` : `${habit.name} heute auslassen`}
+            <button type="button" aria-label=${lage === 'ausgelassen' ? `${habit.name}: Auslassen zurücknehmen` : `${habit.name} ${istHeute ? 'heute' : tagImSatz(tag)} auslassen`}
               onClick=${auslassen}>
               <${Icon} name=${lage === 'ausgelassen' ? 'undo-2' : 'skip-forward'} groesse=${19} />
             </button>

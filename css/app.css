@@ -1048,6 +1048,15 @@ input[type='date'].feld::-webkit-date-and-time-value { text-align: left; }
 .block.kurz .block-haken span { width: 13px; height: 13px; }
 .block.kurz .block-text { justify-content: center; padding: 0 6px 0 0; }
 
+/* Tagesansicht mit kleinen Stunden (Standard): Blöcke enger gesetzt, damit Titel und Uhrzeit in eine Stunde passen */
+.raster-rahmen.eng .block { line-height: 1.18; }
+.raster-rahmen.eng .block.termin { padding: 2px 6px; }
+.raster-rahmen.eng .block-text { padding: 2px 6px 2px 0; }
+.raster-rahmen.eng .block-haken { height: 18px; }
+.raster-rahmen.eng .block.kurz { font-size: 11px; }
+.raster-rahmen.eng .block.kurz.termin, .raster-rahmen.eng .block.kurz .block-text { padding-top: 0; padding-bottom: 0; }
+.raster-rahmen.eng .stunden span { font-size: 11px; }
+
 /* Alle 7 Tage nebeneinander: schmale Spalten, kleine Schrift, Titel dürfen umbrechen */
 .raster-rahmen.kompakt .tag-kopf { gap: 2px; padding: 4px 1px 5px; }
 .raster-rahmen.kompakt .tag-kopf-datum { flex-direction: column; gap: 0; min-height: 0; font-size: 11px; }
@@ -1618,3 +1627,86 @@ div.aufgabe-haupt { cursor: default; }
 .abschnitt .garten-hinweis { margin-top: 10px; }
 .ep-liste dt { color: var(--tinte); }
 .ep-liste dd, .werte dd.ep { color: var(--gold); font-weight: 500; }
+
+/* ---------- Langes Drücken (ab 9.2.0) ---------- */
+
+/* Einträge mit Menü: kein Markieren von Text und kein Vorschaufenster von iOS beim langen Drücken */
+[data-lang] { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+[data-lang] * { -webkit-touch-callout: none; }
+/* Leichte Hervorhebung, solange der Finger ruht */
+li.lang-druck, li.lang-druck > .zeile-haupt, li.lang-druck .aufgabe-zeile, li.lang-druck .agenda-zeile, li.lang-druck .ziel-karte {
+  background-color: var(--zart) !important;
+  transition: background-color 0.3s ease;
+}
+.block.lang-druck, .ganztag-chip.lang-druck { filter: brightness(0.93); transition: filter 0.3s ease; }
+
+/* ---------- Tab „Heute“: andere Tage und eigene Anordnung (ab 9.2.0) ---------- */
+
+/* Kopf: Titel und Datum öffnen die Datumswahl, rechts die Pfeile */
+.tag-wahl { position: relative; }
+.tag-wahl-feld {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  color: transparent;
+  background: transparent;
+}
+.tag-wahl-feld::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.kopf-tage { flex: none; display: flex; align-items: center; gap: 2px; margin-right: -10px; }
+.kopf-pfeil { width: 42px; height: 44px; display: grid; place-items: center; border-radius: 50%; color: #fff; }
+.kopf-aktion.klein { min-height: 32px; padding: 0 12px; margin-right: 4px; font-size: 14px; }
+
+/* Die Bereiche selbst bilden keinen eigenen Kasten, damit der Abstand der Seite gleich bleibt */
+.bereich { display: contents; }
+.level-zeile[data-lang], .abschnitt-kopf[data-lang] { -webkit-user-select: none; user-select: none; }
+.abschnitt-kopf.lang-druck h2 { color: var(--tinte); }
+.level-zeile.lang-druck { background: var(--zart); }
+
+.heute-fuss { display: flex; flex-direction: column; align-items: center; gap: 2px; padding-top: 2px; text-align: center; }
+.heute-fuss p { font-size: 13.5px; color: var(--tinte-blass); }
+.heute-fuss .knopf-text { display: inline-flex; align-items: center; gap: 7px; font-size: 14.5px; color: var(--tinte-leise); }
+
+/* Kommende Tage: Häkchen nur zur Ansicht */
+.haken:disabled { opacity: 0.4; }
+
+/* Blatt „Ansicht anpassen“ */
+.anpassen-liste { overflow: visible; }
+.anpassen-zeile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 56px;
+  padding-right: 12px;
+  background: var(--flaeche);
+  transition: transform 0.18s ease;
+}
+.anpassen-liste > li:first-child { border-radius: var(--rund) var(--rund) 0 0; }
+.anpassen-liste > li:last-child { border-radius: 0 0 var(--rund) var(--rund); }
+.anpassen-zeile.gezogen {
+  z-index: 2;
+  transition: none;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(62, 43, 35, 0.18);
+}
+.anpassen-zeile .griff {
+  flex: none;
+  width: 46px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  color: var(--tinte-blass);
+  touch-action: none;
+  cursor: grab;
+}
+.anpassen-liste.zieht .griff { cursor: grabbing; }
+.anpassen-name { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; color: var(--tinte-leise); }
+.anpassen-name > span { display: flex; flex-direction: column; min-width: 0; }
+.anpassen-name strong { font-size: 16px; font-weight: 500; color: var(--tinte); }
+.anpassen-name small { font-size: 13px; color: var(--tinte-blass); }
+.anpassen-zeile.aus .anpassen-name strong { color: var(--tinte-blass); }

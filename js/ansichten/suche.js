@@ -45,9 +45,9 @@ function suche(text) {
   return { aufgaben: gefundeneAufgaben, termine: gefundeneTermine, notizen: gefundeneNotizen, habits: gefundeneHabits, ziele: gefundeneZiele };
 }
 
-function Treffer({ icon, titel, text, blass = false, onClick }) {
+function Treffer({ icon, titel, text, blass = false, lang = null, onClick }) {
   return html`
-    <li class="zeile">
+    <li class="zeile" data-lang=${lang}>
       <button class=${`zeile-haupt ${blass ? 'blass' : ''}`} type="button" onClick=${onClick}>
         <span class="listen-icon"><${Icon} name=${icon} groesse=${20} /></span>
         <span class="zeile-text">
@@ -103,19 +103,19 @@ export function Suche() {
 
   const gruppen = ergebnis ? [
     { name: 'Aufgaben', liste: ergebnis.aufgaben.map((a) => html`
-      <${Treffer} key=${a.id} icon=${a.erledigtAm ? 'circle-check' : 'circle'} titel=${a.titel} text=${aufgabeText(a)} blass=${Boolean(a.erledigtAm)}
+      <${Treffer} key=${a.id} lang=${`aufgabe:${a.id}`} icon=${a.erledigtAm ? 'circle-check' : 'circle'} titel=${a.titel} text=${aufgabeText(a)} blass=${Boolean(a.erledigtAm)}
         onClick=${() => oeffneAufgabe({ id: a.id })} />`) },
     { name: 'Termine', liste: ergebnis.termine.map((t) => html`
-      <${Treffer} key=${t.id} icon="calendar" titel=${t.titel} text=${terminText(t)} onClick=${() => setTermin({ id: t.id, start: t.datum })} />`) },
+      <${Treffer} key=${t.id} lang=${`termin:${t.id}:${t.datum}`} icon="calendar" titel=${t.titel} text=${terminText(t)} onClick=${() => setTermin({ id: t.id, start: t.datum })} />`) },
     { name: 'Notizen', liste: ergebnis.notizen.map((n) => html`
-      <${Treffer} key=${n.id} icon=${notizen.istGesperrt(n) ? 'lock' : n.art === 'tracker' ? 'chart-line' : 'file-text'} titel=${n.titel} text=${notizText(n)}
+      <${Treffer} key=${n.id} lang=${`notiz:${n.id}`} icon=${notizen.istGesperrt(n) ? 'lock' : n.art === 'tracker' ? 'chart-line' : 'file-text'} titel=${n.titel} text=${notizText(n)}
         onClick=${() => geheZu(`notiz/${n.id}`)} />`) },
     { name: 'Habits', liste: ergebnis.habits.map((h) => html`
-      <${Treffer} key=${h.id} icon=${h.icon || 'flame'} titel=${h.name} text=${habits.frequenzText(h)} onClick=${() => geheZu(`habit/${h.id}`)} />`) },
+      <${Treffer} key=${h.id} lang=${`habit:${h.id}`} icon=${h.icon || 'flame'} titel=${h.name} text=${habits.frequenzText(h)} onClick=${() => geheZu(`habit/${h.id}`)} />`) },
     { name: 'Ziele', liste: ergebnis.ziele.map((z) => {
       const f = ziele.fortschritt(z);
       const text = [z.erreichtAm ? 'Erreicht' : null, f.gesamt ? `${f.erledigt} von ${f.gesamt} Aufgaben erledigt` : null, ziele.fristText(z) || null].filter(Boolean).join(', ');
-      return html`<${Treffer} key=${z.id} icon="target" titel=${z.titel} text=${text} blass=${Boolean(z.erreichtAm)} onClick=${() => geheZu(`ziel/${z.id}`)} />`;
+      return html`<${Treffer} key=${z.id} lang=${`ziel:${z.id}`} icon="target" titel=${z.titel} text=${text} blass=${Boolean(z.erreichtAm)} onClick=${() => geheZu(`ziel/${z.id}`)} />`;
     }) },
   ].filter((g) => g.liste.length) : [];
 

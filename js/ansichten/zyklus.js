@@ -3,7 +3,9 @@
 
 import { html, useState } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
-import { Blatt, melde } from '../bausteine/fenster.js';
+import { Blatt, melde, oeffneBlatt } from '../bausteine/fenster.js';
+import { loeschePeriode } from '../bausteine/loeschen.js';
+import { registriere } from '../bausteine/lang-druck.js';
 import { useDaten, geheZu } from '../haken.js';
 import * as store from '../store.js';
 import * as zyklus from '../zyklus.js';
@@ -50,14 +52,14 @@ function standText(st) {
 
 // ---------- Karte im Tagesbereich ----------
 
-export function ZyklusHeute({ tag }) {
+export function ZyklusHeute({ tag, kopfLang = null }) {
   if (!zyklus.imTagesbereich()) return null;
   const st = zyklus.stand(tag);
   if (!st || st.veraltet) return null;
   const { titel, text } = standText(st);
   return html`
     <section class="abschnitt">
-      <div class="abschnitt-kopf">
+      <div class="abschnitt-kopf" data-lang=${kopfLang}>
         <h2>Zyklus</h2>
         <span class="kopf-rechts">
           ${!st.brauchtLaenge && html`<span>Tag ${st.zyklustag}</span>`}
@@ -194,7 +196,7 @@ export function Zyklus() {
             else teile.push('Läuft noch');
             if (naechste) teile.push(`Zyklus ${tageZwischen(p.beginn, naechste.beginn)} Tage`);
             return html`
-              <li class="zeile" key=${p.id}>
+              <li class="zeile" key=${p.id} data-lang=${`periode:${p.id}`}>
                 <button class="zeile-haupt" type="button" onClick=${() => setFenster({ id: p.id })}>
                   <span class="listen-icon"><${Icon} name="droplet" groesse=${20} /></span>
                   <span class="zeile-text">
@@ -234,6 +236,8 @@ export function Zyklus() {
 
 // ---------- Periode eintragen und ändern ----------
 
+registriere('periode', { bearbeiten: (p) => oeffneBlatt((zu) => html`<${PeriodeBlatt} offen=${{ id: p.id }} onSchliessen=${zu} />`) });
+
 function PeriodeBlatt({ offen, onSchliessen }) {
   const vorhanden = offen.id ? store.hole(offen.id) : null;
   const tag = heute();
@@ -252,10 +256,8 @@ function PeriodeBlatt({ offen, onSchliessen }) {
     onSchliessen();
   };
 
-  const loeschen = () => {
-    store.loeschen(vorhanden.id);
-    onSchliessen();
-    melde('Eintrag gelöscht', { aktion: 'Rückgängig', beiAktion: () => store.wiederherstellen(vorhanden.id) });
+  const loeschen = async () => {
+    if (await loeschePeriode(vorhanden)) onSchliessen();
   };
 
   const titel = !vorhanden ? 'Periode eintragen' : offen.beenden ? 'Periodenende eintragen' : 'Periode ändern';

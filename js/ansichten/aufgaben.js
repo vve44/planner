@@ -4,7 +4,9 @@
 import { html, useState } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
 import { IconWahl } from '../bausteine/icon-wahl.js';
-import { Blatt, melde, waehle } from '../bausteine/fenster.js';
+import { Blatt, melde, waehle, oeffneBlatt } from '../bausteine/fenster.js';
+import { loescheProjekt } from '../bausteine/loeschen.js';
+import { registriere } from '../bausteine/lang-druck.js';
 import { AufgabeZeile, AufgabenGruppe } from '../bausteine/aufgabe-zeile.js';
 import { oeffneAufgabe } from '../bausteine/aufgabe-blatt.js';
 import { useDaten, geheZu } from '../haken.js';
@@ -102,7 +104,7 @@ function offeneIn(projektId) {
 function ListenZeile({ projekt }) {
   const anzahl = offeneIn(projekt.id);
   return html`
-    <li class="zeile">
+    <li class="zeile" data-lang=${projekt.istMerkliste ? null : `projekt:${projekt.id}`}>
       <button class="zeile-haupt" type="button" onClick=${() => geheZu(projekt.istMerkliste ? 'merkliste' : `liste/${projekt.id}`)}>
         <span class="listen-icon"><${Icon} name=${projekt.icon || 'list'} groesse=${20} /></span>
         <span class="zeile-text"><strong>${projekt.name}</strong></span>
@@ -281,6 +283,9 @@ function ListenInhalt({ projekt }) {
 
 // ---------- Projekt oder Liste anlegen und bearbeiten ----------
 
+// Langes Drücken auf eine Liste: „Bearbeiten“ öffnet dieses Blatt.
+registriere('projekt', { bearbeiten: (p) => oeffneBlatt((zu) => html`<${ProjektBlatt} projekt=${p} onSchliessen=${zu} />`) });
+
 function ProjektBlatt({ projekt = null, onSchliessen }) {
   const [name, setName] = useState(projekt ? projekt.name : '');
   const [kategorieId, setKategorieId] = useState(projekt ? projekt.kategorieId : null);
@@ -306,24 +311,9 @@ function ProjektBlatt({ projekt = null, onSchliessen }) {
   };
 
   const loeschen = async () => {
-    const anzahl = aufgaben.alleAufgaben().filter((a) => a.projektId === projekt.id).length;
-    let mitAufgaben = false;
-    if (anzahl) {
-      const wahl = await waehle({
-        titel: `„${projekt.name}“ löschen`,
-        text: anzahl === 1 ? 'In dieser Liste steht 1 Aufgabe. Was soll mit ihr passieren?' : `In dieser Liste stehen ${anzahl} Aufgaben. Was soll mit ihnen passieren?`,
-        optionen: [
-          { wert: 'behalten', name: 'Aufgaben behalten, ohne Liste' },
-          { wert: 'mit', name: 'Aufgaben mit löschen', art: 'gefahr' },
-        ],
-      });
-      if (!wahl) return;
-      mitAufgaben = wahl === 'mit';
-    }
-    const zurueck = aufgaben.loescheProjekt(projekt.id, { mitAufgaben });
+    if (!(await loescheProjekt(projekt))) return;
     onSchliessen();
     geheZu('aufgaben');
-    melde(`„${projekt.name}“ gelöscht`, { aktion: 'Rückgängig', beiAktion: zurueck });
   };
 
   const fuss = html`

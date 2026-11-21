@@ -3,7 +3,9 @@
 
 import { html, useState } from '../../bibliothek/preact-htm.js';
 import { Icon } from '../bausteine/icon.js';
-import { Blatt, melde, frage } from '../bausteine/fenster.js';
+import { Blatt, melde, frage, oeffneBlatt } from '../bausteine/fenster.js';
+import { loescheHabit, loescheUrlaub as loescheUrlaubEintrag } from '../bausteine/loeschen.js';
+import { registriere } from '../bausteine/lang-druck.js';
 import { HabitZeile, HabitTagBlatt } from '../bausteine/habit-teile.js';
 import { HabitBlatt } from '../bausteine/habit-blatt.js';
 import { useDaten, geheZu } from '../haken.js';
@@ -24,10 +26,7 @@ export function Habits() {
   const urlaub = habits.urlaubAm(tag);
   const urlaube = [...habits.urlaube()].reverse();
 
-  const loescheUrlaub = (u) => {
-    store.loeschen(u.id);
-    melde('Urlaub gelöscht', { aktion: 'Rückgängig', beiAktion: () => store.wiederherstellen(u.id) });
-  };
+  const loescheUrlaub = (u) => loescheUrlaubEintrag(u);
 
   if (!liste.length) {
     return html`
@@ -84,7 +83,7 @@ export function Habits() {
         ${urlaube.length ? html`
           <ul class="gruppe">
             ${urlaube.map((u) => html`
-              <li class=${`zeile ${u.bis < tag ? 'vorbei' : ''}`} key=${u.id}>
+              <li class=${`zeile ${u.bis < tag ? 'vorbei' : ''}`} key=${u.id} data-lang=${`urlaub:${u.id}`}>
                 <button class="zeile-haupt" type="button" onClick=${() => setUrlaubOffen({ id: u.id })}>
                   <span class="listen-icon"><${Icon} name="tree-palm" groesse=${20} /></span>
                   <span class="zeile-text">
@@ -119,6 +118,8 @@ export function Habits() {
 }
 
 // ---------- Urlaub eintragen und ändern ----------
+
+registriere('urlaub', { bearbeiten: (u) => oeffneBlatt((zu) => html`<${UrlaubBlatt} offen=${{ id: u.id }} onSchliessen=${zu} />`) });
 
 function UrlaubBlatt({ offen, onSchliessen }) {
   const vorhanden = offen.id ? store.hole(offen.id) : null;
@@ -193,16 +194,7 @@ export function Habit({ teil }) {
   if (habit.menge) angaben.push(`Tagesziel ${habits.mengeText(habit)}`);
 
   const loeschen = async () => {
-    const ja = await frage({
-      titel: `„${habit.name}“ löschen?`,
-      text: 'Das Habit kommt mit seinem Verlauf in den Papierkorb und lässt sich 30 Tage lang wiederherstellen.',
-      ja: 'Löschen',
-      gefahr: true,
-    });
-    if (!ja) return;
-    const zurueck = habits.loesche(habit);
-    geheZu('habits');
-    melde(`„${habit.name}“ gelöscht`, { aktion: 'Rückgängig', beiAktion: zurueck });
+    if (await loescheHabit(habit)) geheZu('habits');
   };
 
   const kacheln = [
